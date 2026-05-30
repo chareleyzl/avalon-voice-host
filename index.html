@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>阿瓦隆主持人</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { background: #1a1a2e; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+  background: #1a1a2e; color: #e0e0e0;
+  min-height: 100vh; min-height: 100dvh;
+  min-width: 320px; overflow-x: hidden;
+  -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%;
+}
+button, select, input { font: inherit; font-size: 16px; }
+.app { width: 100%; max-width: 480px; margin: 0 auto; padding: 16px 12px calc(24px + env(safe-area-inset-bottom)); }
+
+.header { text-align: center; margin-bottom: 16px; }
+.header h1 { font-size: 1.4rem; color: #e8d5b7; letter-spacing: 2px; }
+
+.steps { display: flex; justify-content: center; gap: 10px; margin-bottom: 16px; }
+.step-dot { width: 10px; height: 10px; border-radius: 50%; background: #3a3a5c; transition: background .3s; }
+.step-dot.active { background: #e8d5b7; }
+.step-dot.done { background: #5a9e6f; }
+
+.card {
+  width: 100%; background: #16213e; border-radius: 12px; padding: 16px; margin-bottom: 12px;
+  border: 1px solid #2a2a4a;
+}
+.card h2 { font-size: 1rem; color: #e8d5b7; margin-bottom: 10px; }
+
+.num-select { display: grid; grid-template-columns: repeat(auto-fit, 44px); justify-content: center; gap: 8px; }
+.num-btn {
+  width: 44px; height: 44px; border-radius: 50%; border: 2px solid #3a3a5c;
+  background: #1a1a2e; color: #e0e0e0; font-size: 1.1rem;
+  -webkit-appearance: none; -webkit-tap-highlight-color: transparent; cursor: pointer;
+}
+.num-btn.active { border-color: #e8d5b7; background: #e8d5b7; color: #1a1a2e; font-weight: bold; }
+
+.role-table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: .9rem; }
+.role-table th, .role-table td { padding: 6px 8px; text-align: center; }
+.role-table th:first-child, .role-table td:first-child { width: 72px; }
+.role-table td:last-child { text-align: left; }
+.role-table th { color: #888; font-weight: normal; font-size: .75rem; }
+.role-table .good { color: #5a9e6f; }
+.role-table .evil { color: #c0392b; }
+.role-tag { display: inline-block; font-size: .78rem; padding: 2px 7px; border-radius: 8px; margin: 2px; white-space: nowrap; }
+.role-tag.good { background: rgba(90,158,111,.2); color: #5a9e6f; }
+.role-tag.evil { background: rgba(192,57,43,.2); color: #c0392b; }
+
+.options { margin-top: 12px; }
+.option-item { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid #2a2a4a; }
+.option-item > div { min-width: 0; }
+.option-item:last-child { border-bottom: none; }
+.option-label { font-size: .9rem; }
+.option-desc { font-size: .72rem; color: #888; margin-top: 2px; }
+
+.toggle { position: relative; display: inline-block; width: 44px; height: 24px; flex-shrink: 0; }
+.toggle input { opacity: 0; width: 0; height: 0; }
+.toggle .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: #3a3a5c; border-radius: 24px; transition: .2s; }
+.toggle .slider::before { content: ""; position: absolute; height: 18px; width: 18px; left: 3px; bottom: 3px; background: #e0e0e0; border-radius: 50%; transition: .2s; }
+.toggle input:checked + .slider { background: #e8d5b7; }
+.toggle input:checked + .slider::before { transform: translateX(20px); background: #1a1a2e; }
+
+.btn {
+  display: block; width: 100%; padding: 14px; border: none; border-radius: 10px;
+  font-size: 1rem; font-weight: 600; text-align: center; letter-spacing: 1px;
+  -webkit-appearance: none; appearance: none;
+  -webkit-tap-highlight-color: transparent; touch-action: manipulation; cursor: pointer;
+}
+#voiceSel { min-height: 44px; font-size: 16px !important; }
+.btn:active { opacity: .8; }
+.btn-primary { background: #e8d5b7; color: #1a1a2e; }
+.btn-secondary { background: transparent; border: 1px solid #3a3a5c; color: #e0e0e0; margin-top: 10px; }
+.btn-secondary + .btn-primary { margin-top: 10px; }
+
+.script-step { display: flex; align-items: flex-start; gap: 8px; padding: 8px 0; border-bottom: 1px solid #2a2a4a; }
+.script-step:last-child { border-bottom: none; }
+.script-step > div:last-child { min-width: 0; }
+.script-num { width: 26px; height: 26px; border-radius: 50%; background: #3a3a5c; color: #e8d5b7; display: flex; align-items: center; justify-content: center; font-size: .75rem; flex-shrink: 0; }
+.script-text { font-size: .85rem; line-height: 1.5; }
+.script-sub { font-size: .78rem; color: #888; margin-top: 3px; overflow-wrap: anywhere; }
+
+.exec-area { text-align: center; }
+.exec-label { font-size: .8rem; color: #888; margin-bottom: 6px; }
+.exec-text {
+  font-size: 1.3rem; line-height: 1.6; color: #e8d5b7; min-height: 140px;
+  display: flex; align-items: center; justify-content: center; padding: 16px 0;
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+  text-align: center; white-space: pre-line; overflow-wrap: anywhere; word-break: break-word;
+}
+.progress-bar { width: 100%; height: 3px; background: #3a3a5c; border-radius: 2px; margin: 12px 0; overflow: hidden; }
+.progress-fill { height: 100%; background: #e8d5b7; border-radius: 2px; transition: width .3s; }
+.exec-row { display: flex; gap: 8px; }
+.exec-row .btn { flex: 1; padding: 12px 8px; font-size: .9rem; }
+.exec-row .btn-secondary { margin-top: 0; }
+
+.auto-row { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 10px; font-size: .8rem; color: #888; }
+.speech-status { min-height: 18px; margin-bottom: 10px; font-size: .75rem; color: #888; }
+.speech-status.warn { color: #e8d5b7; }
+
+.hidden { display: none !important; }
+
+@media (max-width: 360px) {
+  .app { padding-left: 10px; padding-right: 10px; }
+  .card { padding: 14px; }
+  .header h1 { font-size: 1.25rem; }
+  .role-table th:first-child, .role-table td:first-child { width: 64px; }
+  .exec-text { font-size: 1.15rem; min-height: 150px; }
+  .exec-row { flex-direction: column; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- View 1: Config -->
+  <div id="v1">
+    <div class="header"><h1>阿瓦隆主持人</h1></div>
+    <div class="steps"><div class="step-dot active"></div><div class="step-dot"></div><div class="step-dot"></div></div>
+    <div class="card">
+      <h2>选择玩家人数</h2>
+      <div class="num-select" id="numSelect"></div>
+    </div>
+    <div class="card">
+      <h2>角色配置</h2>
+      <table class="role-table"><tr><th>阵营</th><th>角色</th></tr><tbody id="roleBody"></tbody></table>
+      <div class="options hidden" id="optArea"></div>
+      <div style="margin-top:12px">
+        <label style="font-size:.8rem;color:#888">语音音色</label>
+        <select id="voiceSel" style="width:100%;margin-top:4px;padding:8px;border-radius:6px;background:#1a1a2e;color:#e0e0e0;border:1px solid #3a3a5c;font-size:.85rem;-webkit-appearance:auto"></select>
+      </div>
+    </div>
+    <button class="btn btn-primary" id="btnNext">下一步 · 预览剧本</button>
+  </div>
+
+  <!-- View 2: Preview -->
+  <div id="v2" class="hidden">
+    <div class="header"><h1>剧本预览</h1></div>
+    <div class="steps"><div class="step-dot done"></div><div class="step-dot active"></div><div class="step-dot"></div></div>
+    <div class="card">
+      <h2>夜间环节流程</h2>
+      <div id="preview"></div>
+    </div>
+    <button class="btn btn-secondary" id="btnTestSound">测试声音</button>
+    <button class="btn btn-primary" id="btnStart">开始主持</button>
+    <button class="btn btn-secondary" id="btnBack">返回修改</button>
+  </div>
+
+  <!-- View 3: Execution -->
+  <div id="v3" class="hidden">
+    <div class="header"><h1>主持中</h1></div>
+    <div class="steps" id="dots"></div>
+    <div class="card exec-area">
+      <div class="exec-label" id="label"></div>
+      <div class="exec-text" id="text" aria-live="polite"></div>
+      <div class="progress-bar"><div class="progress-fill" id="bar" style="width:0%"></div></div>
+      <div class="auto-row">
+        <label class="toggle"><input type="checkbox" id="autoToggle" checked><span class="slider"></span></label>
+        <span>自动朗读</span>
+      </div>
+      <div class="speech-status" id="speechStatus"></div>
+      <div class="exec-row">
+        <button class="btn btn-secondary" id="btnStop">结束</button>
+        <button class="btn btn-primary" id="btnAdvance">下一步</button>
+      </div>
+    </div>
+    <button class="btn btn-secondary hidden" id="btnAgain">重新开始</button>
+  </div>
+
+</div>
+<audio id="audioPlayer" preload="auto" playsinline webkit-playsinline></audio>
+
+<script>
+// === DATA ===
+const CFG = {
+  5:  { good:['梅林','派西维尔','忠臣'],            evil:['刺客','莫甘娜'],          min:0 },
+  6:  { good:['梅林','派西维尔','忠臣','忠臣'],      evil:['刺客','莫甘娜'],          min:0 },
+  7:  { good:['梅林','派西维尔','忠臣','忠臣'],      evil:['刺客','莫甘娜','爪牙'],    min:1 },
+  8:  { good:['梅林','派西维尔','忠臣','忠臣','忠臣'], evil:['刺客','莫甘娜','爪牙'],  min:1 },
+  9:  { good:['梅林','派西维尔','忠臣','忠臣','忠臣','忠臣'], evil:['刺客','莫甘娜','爪牙'], min:1 },
+  10: { good:['梅林','派西维尔','忠臣','忠臣','忠臣','忠臣'], evil:['刺客','莫甘娜','爪牙','爪牙'], min:2 },
+};
+
+// === STATE ===
+let n = 7, mord = false, ober = false;
+let voice = null, autoPlay = true;
+let sects = [], cur = 0, utt = null, paused = false, tmr = null, fb = null, cnt = null;
+
+// === DOM ===
+const $ = id => document.getElementById(id);
+const v1=$('v1'), v2=$('v2'), v3=$('v3');
+const ns=$('numSelect'), rb=$('roleBody'), oa=$('optArea');
+const pv=$('preview'), tx=$('text'), lb=$('label'), br=$('bar');
+const da=$('dots'), at=$('autoToggle'), bp=$('btnAdvance'), bs=$('btnStop'), ba=$('btnAgain');
+const vs=$('voiceSel'), ss=$('speechStatus'), ap=$('audioPlayer');
+const btnStart=$('btnStart'), btnTestSound=$('btnTestSound');
+
+// === HELPERS ===
+function evils() {
+  const a = [...CFG[n].evil];
+  if(mord){ const i=a.indexOf('爪牙'); if(i!==-1) a[i]='莫德雷德'; }
+  if(ober){ const i=a.indexOf('爪牙'); if(i!==-1) a[i]='奥伯伦'; }
+  return a;
+}
+function goods(){ return [...CFG[n].good]; }
+function has(r){ return evils().includes(r); }
+function jn(l){ return l.join('、'); }
+const ROLE_AUDIO_KEY = {
+  '刺客':'assassin',
+  '莫甘娜':'morgana',
+  '爪牙':'minion',
+  '莫德雷德':'mordred',
+  '奥伯伦':'oberon'
+};
+function roleAudioKey(roles){ return roles.map(r=>ROLE_AUDIO_KEY[r]||r).join('-'); }
+function audioSrc(i){
+  const ev = evils();
+  if(i===0) return 'audio/close-eyes.mp3';
+  if(i===2) return 'audio/evil-close-eyes.mp3';
+  if(i===4) return 'audio/percival.mp3';
+  if(i===5) return 'audio/dawn.mp3';
+  if(i===1) {
+    const visible = ev.filter(r => r!=='奥伯伦');
+    return `audio/evil-${roleAudioKey(visible)}${ev.includes('奥伯伦')?'-oberon-note':''}.mp3`;
+  }
+  if(i===3) {
+    const thumbs = ev.filter(r => r!=='莫德雷德');
+    return `audio/merlin-${roleAudioKey(thumbs)}${ev.includes('莫德雷德')?'-mordred-note':''}.mp3`;
+  }
+  return '';
+}
+
+// === SCRIPT ===
+function gen() {
+  const ev = evils();
+  const s2o = ev.filter(r => r!=='奥伯伦'), thumbs = ev.filter(r => r!=='莫德雷德');
+  const st = [];
+  st.push({ sec:'天黑闭眼', txt:['请所有人闭上眼睛，双手握拳放在桌上'] });
+  const s2t = [`${jn(s2o)}请睁开眼睛，确认彼此身份`];
+  if(has('奥伯伦')) s2t.push('奥伯伦不参与睁眼，继续闭眼');
+  st.push({ sec:'阵营相识', txt:s2t, delay:5000 });
+  st.push({ sec:'阵营相识', txt:['请闭上眼睛'] });
+  const s3t = ['梅林请睁开眼睛'];
+  s3t.push(`请${jn(thumbs)}竖起大拇指`);
+  if(has('莫德雷德')) s3t.push('莫德雷德不竖大拇指，梅林看不见莫德雷德');
+  s3t.push('请梅林记住这些竖起大拇指的玩家');
+  s3t.push('梅林请闭上眼睛');
+  st.push({ sec:'梅林识人', txt:s3t });
+  st.push({ sec:'派西维尔辨人', txt:['请梅林和莫甘娜竖起大拇指','派西维尔请睁开眼睛，看清这两位竖起大拇指的玩家','派西维尔请闭上眼睛'] });
+  st.push({ sec:'天亮', txt:['天亮了，请所有人睁开眼睛'] });
+  return st;
+}
+
+// === TTS safety ===
+const hasSpeech = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
+let speakRun = 0;
+function clearSpeechFallback() { if(fb){ clearTimeout(fb); fb=null; } }
+function stopSpeech() {
+  speakRun++;
+  clearSpeechFallback();
+  if(ap){
+    ap.pause();
+    ap.removeAttribute('src');
+    ap.onended = null;
+    ap.onerror = null;
+    try { ap.load(); } catch(e){}
+  }
+  if(hasSpeech) try{ speechSynthesis.cancel(); }catch(e){}
+}
+function resumeSpeech() {
+  if(!hasSpeech) return;
+  try { speechSynthesis.resume(); } catch(e){}
+}
+function setSpeechStatus(text, warn=false) {
+  ss.textContent = text || '';
+  ss.classList.toggle('warn', !!warn);
+}
+function absoluteAudioUrl(src) {
+  return new URL(src, window.location.href).href;
+}
+
+// === TTS ===
+function speakWithBrowser(text, token, done) {
+  if(!hasSpeech){
+    setSpeechStatus('当前浏览器不支持语音朗读，也未能播放静态音频', true);
+    return null;
+  }
+  try {
+    loadVoices();
+    resumeSpeech();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang='zh-CN'; u.rate=.85; u.pitch=1;
+    if(voice) u.voice=voice;
+    fb = setTimeout(() => {
+      if(token!==speakRun) return;
+      try{ speechSynthesis.cancel(); }catch(e){}
+      clearSpeechFallback();
+      done();
+    }, Math.max(10000, text.length * 420));
+    u.onstart = () => setSpeechStatus('正在使用浏览器语音朗读');
+    u.onend = done;
+    u.onerror = () => {
+      if(token!==speakRun) return;
+      clearSpeechFallback();
+      setSpeechStatus('浏览器语音被阻止，请手动点“下一步”，或换 Safari/Chrome 系统浏览器', true);
+    };
+    speechSynthesis.speak(u);
+    setTimeout(resumeSpeech, 250);
+    setTimeout(resumeSpeech, 1000);
+    return u;
+  } catch(e) {
+    setSpeechStatus('浏览器语音启动失败，请手动点“下一步”', true);
+    return null;
+  }
+}
+
+function speak(txts, cb, src) {
+  const text = txts.join('。');
+  if(!text.trim()){ if(cb) cb(); return null; }
+  stopSpeech();
+  const token = ++speakRun;
+  let fired = false;
+  const done = () => {
+    if(fired || token!==speakRun) return;
+    fired = true;
+    clearSpeechFallback();
+    setSpeechStatus('');
+    if(cb) cb();
+  };
+
+  if(src && ap) {
+    try {
+      setSpeechStatus('正在播放静态音频');
+      ap.onended = done;
+      ap.onerror = () => {
+        if(fired || token!==speakRun) return;
+        ap.onended = null;
+        ap.onerror = null;
+        setSpeechStatus('静态音频不可用，尝试浏览器语音', true);
+        speakWithBrowser(text, token, done);
+      };
+      ap.src = absoluteAudioUrl(src);
+      ap.currentTime = 0;
+      ap.load();
+      const p = ap.play();
+      if(p && typeof p.catch === 'function') {
+        p.catch(() => {
+          if(fired || token!==speakRun) return;
+          ap.onended = null;
+          ap.onerror = null;
+          setSpeechStatus('静态音频播放被阻止，尝试浏览器语音', true);
+          speakWithBrowser(text, token, done);
+        });
+      }
+      return ap;
+    } catch(e) {
+      return speakWithBrowser(text, token, done);
+    }
+  }
+
+  return speakWithBrowser(text, token, done);
+}
+
+// === VOICE ===
+function loadVoices() {
+  if(!hasSpeech){ vs.innerHTML='<option value="">默认语音</option>'; return; }
+  try {
+    const vo = speechSynthesis.getVoices().filter(v => v.lang.startsWith('zh'));
+    vs.innerHTML = '<option value="">默认语音</option>';
+    if(!vo.length) return;
+    let fe = vo.find(v => /hui|yao|han|ting|xiao|女/i.test(v.name));
+    let ma = vo.find(v => /kang|yun|qiang|男/i.test(v.name));
+    if(!fe) fe=vo[0];
+    if(!ma) ma=vo.find(v => v!==fe)||null;
+    vs.innerHTML += `<option value="${fe.name}">女声</option>`;
+    if(ma) vs.innerHTML += `<option value="${ma.name}">男声</option>`;
+    try {
+      const saved = localStorage.getItem('avox')||'';
+      vs.value = saved;
+      voice = saved ? vo.find(v=>v.name===saved)||null : null;
+    } catch(e){}
+  } catch(e){ vs.innerHTML='<option value="">默认语音</option>'; }
+}
+if(hasSpeech){ speechSynthesis.onvoiceschanged = loadVoices; }
+loadVoices();
+// Retry voice loading (mobile browsers may load voices lazily)
+setTimeout(loadVoices, 500);
+setTimeout(loadVoices, 2000);
+vs.onchange = () => {
+  if(!hasSpeech) return;
+  try {
+    const nm = vs.value;
+    voice = nm ? speechSynthesis.getVoices().filter(v=>v.lang.startsWith('zh')).find(v=>v.name===nm)||null : null;
+    try { localStorage.setItem('avox', nm); } catch(e){}
+  } catch(e){}
+};
+
+// === VIEW 1 ===
+function renderNs() {
+  ns.innerHTML='';
+  for(let i=5;i<=10;i++){
+    const b=document.createElement('button');
+    b.className='num-btn'+(i===n?' active':'');
+    b.textContent=i;
+    b.onclick=()=>{ n=i; mord=ober=false; renderCfg(); };
+    ns.appendChild(b);
+  }
+}
+function renderCfg() {
+  ns.querySelectorAll('.num-btn').forEach(b=>b.classList.toggle('active',+b.textContent===n));
+  const g=goods(), e=evils();
+  rb.innerHTML=`<tr><td class="good">好人方<br><small>${g.length}人</small></td><td>${g.map(r=>`<span class="role-tag good">${r}</span>`).join('')}</td></tr><tr><td class="evil">坏人方<br><small>${e.length}人</small></td><td>${e.map(r=>`<span class="role-tag evil">${r}</span>`).join('')}</td></tr>`;
+  if(CFG[n].min>0){
+    oa.classList.remove('hidden');
+    oa.innerHTML=`
+      <div class="option-item"><div><div class="option-label">替换为莫德雷德</div><div class="option-desc">梅林看不见莫德雷德</div></div><label class="toggle"><input type="checkbox" id="chkM" ${mord?'checked':''}><span class="slider"></span></label></div>
+      <div class="option-item"><div><div class="option-label">替换为奥伯伦</div><div class="option-desc">奥伯伦不参与坏人睁眼相识，队友也看不到他</div></div><label class="toggle"><input type="checkbox" id="chkO" ${ober?'checked':''}><span class="slider"></span></label></div>`;
+    $('chkM').onchange=function(){ mord=this.checked; if(mord&&ober&&CFG[n].min===1) ober=false; renderCfg(); };
+    $('chkO').onchange=function(){ ober=this.checked; if(mord&&ober&&CFG[n].min===1) mord=false; renderCfg(); };
+  }else{ oa.classList.add('hidden'); }
+}
+
+// === VIEW 2 ===
+function renderPv() {
+  const st=gen();
+  pv.innerHTML=st.map((s,i)=>`<div class="script-step"><div class="script-num">${i+1}</div><div><div class="script-text"><strong>${s.sec}</strong></div>${s.txt.map(t=>`<div class="script-sub">· ${t}</div>`).join('')}</div></div>`).join('');
+}
+
+// === VIEW 3 ===
+function startExec(opts={}) {
+  autoPlay = at.checked;
+  sects=gen(); cur=0; paused=false; tmr=null; fb=null; cnt=null;
+  setSpeechStatus('');
+  da.innerHTML=sects.map((_,i)=>`<div class="step-dot${i===0?' active':''}"></div>`).join('');
+  ba.classList.add('hidden');
+  bp.classList.remove('hidden'); bs.classList.remove('hidden');
+  at.parentElement.parentElement.classList.remove('hidden');
+  bp.textContent='下一步';
+  showSec(0, { silent: !!opts.silentFirst });
+  if(opts.silentFirst && autoPlay) playSec(0);
+}
+function playSec(i) {
+  const sec = sects[i];
+  if(!sec) return;
+  utt=speak(sec.txt, ()=>{
+    if(paused) return;
+    if(sec.delay){
+      let rem=sec.delay/1000;
+      cnt=setInterval(()=>{ rem--; if(rem>0) tx.textContent='请确认彼此身份... '+rem+'秒'; else{ clearInterval(cnt); cnt=null; } },1000);
+      tmr=setTimeout(()=>{ tmr=null; if(!paused) showSec(i+1); },sec.delay);
+    }else{ showSec(i+1); }
+  }, audioSrc(i));
+}
+function showSec(i, opts={}) {
+  if(i>=sects.length){ done(); return; }
+  cur=i; paused=false;
+  const sec=sects[i];
+  da.querySelectorAll('.step-dot').forEach((d,j)=>{ d.classList.toggle('active',j===i); d.classList.toggle('done',j<i); });
+  lb.textContent=sec.sec;
+  tx.textContent=sec.txt.join('\n');
+  br.style.width=((i+1)/sects.length*100)+'%';
+  bp.disabled=false;
+
+  if(autoPlay && !opts.silent) playSec(i);
+}
+function advance() {
+  paused = true; // prevent onend from double-advancing
+  stopSpeech();
+  if(tmr){ clearTimeout(tmr); tmr=null; }
+  if(cnt){ clearInterval(cnt); cnt=null; }
+  if(fb){ clearTimeout(fb); fb=null; }
+  showSec(cur+1);
+}
+function done() {
+  da.querySelectorAll('.step-dot').forEach(d=>{ d.classList.remove('active'); d.classList.add('done'); });
+  lb.textContent='主持完成'; tx.textContent='天亮了，请所有人睁开眼睛';
+  br.style.width='100%';
+  bp.classList.add('hidden'); bs.classList.add('hidden'); ba.classList.remove('hidden');
+  at.parentElement.parentElement.classList.add('hidden');
+  setSpeechStatus('');
+  stopSpeech();
+}
+function stopExec() {
+  stopSpeech();
+  if(tmr){ clearTimeout(tmr); tmr=null; }
+  if(cnt){ clearInterval(cnt); cnt=null; }
+  if(fb){ clearTimeout(fb); fb=null; }
+  showV(v1); renderCfg();
+}
+function toggleAuto() {
+  autoPlay=at.checked;
+  setSpeechStatus('');
+  if(!autoPlay){ stopSpeech(); if(tmr){ clearTimeout(tmr); tmr=null; } if(cnt){ clearInterval(cnt); cnt=null; } if(fb){ clearTimeout(fb); fb=null; } }
+}
+
+// === NAV ===
+function showV(v) {
+  stopSpeech();
+  v1.classList.add('hidden'); v2.classList.add('hidden'); v3.classList.add('hidden');
+  v.classList.remove('hidden');
+}
+function testSound() {
+  stopSpeech();
+  const token = ++speakRun;
+  let fired = false;
+  const done = () => {
+    if(fired || token!==speakRun) return;
+      fired = true;
+      setSpeechStatus('');
+  };
+  setSpeechStatus('正在测试静态音频');
+  ap.onended = done;
+  ap.onerror = () => setSpeechStatus('测试音频播放失败：内置浏览器可能阻止了音频，或网络未加载到 mp3', true);
+  ap.src = absoluteAudioUrl('audio/close-eyes.mp3');
+  ap.currentTime = 0;
+  ap.load();
+  const p = ap.play();
+  if(p && typeof p.catch === 'function') {
+    p.catch(() => setSpeechStatus('测试音频被浏览器阻止，请再点一次测试声音，或在系统浏览器打开', true));
+  }
+}
+$('btnNext').onclick = () => { renderPv(); showV(v2); };
+$('btnBack').onclick = () => showV(v1);
+let startTouchAt = 0;
+function handleStart(e) {
+  const now = Date.now();
+  if(e && e.type === 'click' && now - startTouchAt < 700) return;
+  if(e && e.type === 'touchend') {
+    startTouchAt = now;
+    e.preventDefault();
+  }
+  showV(v3);
+  startExec({ silentFirst: true });
+}
+btnTestSound.addEventListener('touchend', e => { e.preventDefault(); testSound(); }, { passive:false });
+btnTestSound.addEventListener('click', testSound);
+btnStart.addEventListener('touchend', handleStart, { passive:false });
+btnStart.addEventListener('click', handleStart);
+bp.onclick = advance;
+bs.onclick = stopExec;
+ba.onclick = () => { showV(v1); renderCfg(); };
+at.onchange = toggleAuto;
+
+// Tap text to advance
+tx.addEventListener('click', () => {
+  if(v3.classList.contains('hidden')||cur>=sects.length) return;
+  advance();
+});
+
+// === INIT ===
+renderNs(); renderCfg();
+
+</script>
+</body>
+</html>
