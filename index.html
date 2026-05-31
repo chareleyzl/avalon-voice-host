@@ -70,7 +70,6 @@ button, select, input { font: inherit; font-size: 16px; }
   -webkit-appearance: none; appearance: none;
   -webkit-tap-highlight-color: transparent; touch-action: manipulation; cursor: pointer;
 }
-#voiceSel { min-height: 44px; font-size: 16px !important; }
 .btn:active { opacity: .8; }
 .btn-primary { background: #e8d5b7; color: #1a1a2e; }
 .btn-secondary { background: transparent; border: 1px solid #3a3a5c; color: #e0e0e0; margin-top: 10px; }
@@ -98,8 +97,8 @@ button, select, input { font: inherit; font-size: 16px; }
 .exec-row .btn-secondary { margin-top: 0; }
 
 .auto-row { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 10px; font-size: .8rem; color: #888; }
-.speech-status { min-height: 18px; margin-bottom: 10px; font-size: .75rem; color: #888; }
-.speech-status.warn { color: #e8d5b7; }
+.audio-status { min-height: 18px; margin-bottom: 10px; font-size: .75rem; color: #888; }
+.audio-status.warn { color: #e8d5b7; }
 
 .hidden { display: none !important; }
 
@@ -129,8 +128,8 @@ button, select, input { font: inherit; font-size: 16px; }
       <table class="role-table"><tr><th>阵营</th><th>角色</th></tr><tbody id="roleBody"></tbody></table>
       <div class="options hidden" id="optArea"></div>
       <div style="margin-top:12px">
-        <label style="font-size:.8rem;color:#888">语音音色</label>
-        <select id="voiceSel" style="width:100%;margin-top:4px;padding:8px;border-radius:6px;background:#1a1a2e;color:#e0e0e0;border:1px solid #3a3a5c;font-size:.85rem;-webkit-appearance:auto"></select>
+        <label style="font-size:.8rem;color:#888">暂停时长（秒）</label>
+        <input type="number" id="pauseInput" value="5" min="1" max="60" style="width:100%;margin-top:4px;padding:8px;border-radius:6px;background:#1a1a2e;color:#e0e0e0;border:1px solid #3a3a5c;font-size:.85rem">
       </div>
     </div>
     <button class="btn btn-primary" id="btnNext">下一步 · 预览剧本</button>
@@ -159,9 +158,9 @@ button, select, input { font: inherit; font-size: 16px; }
       <div class="progress-bar"><div class="progress-fill" id="bar" style="width:0%"></div></div>
       <div class="auto-row">
         <label class="toggle"><input type="checkbox" id="autoToggle" checked><span class="slider"></span></label>
-        <span>自动朗读</span>
+        <span>自动播放</span>
       </div>
-      <div class="speech-status" id="speechStatus"></div>
+      <div class="audio-status" id="audioStatus"></div>
       <div class="exec-row">
         <button class="btn btn-secondary" id="btnStop">结束</button>
         <button class="btn btn-primary" id="btnAdvance">下一步</button>
@@ -186,8 +185,8 @@ const CFG = {
 
 // === STATE ===
 let n = 7, mord = false, ober = false;
-let voice = null, autoPlay = true;
-let sects = [], cur = 0, utt = null, paused = false, tmr = null, fb = null, cnt = null;
+let pauseDuration = 5;
+let sects = [], cur = 0, tmr = null, cnt = null, audioRun = 0;
 
 // === DOM ===
 const $ = id => document.getElementById(id);
@@ -195,7 +194,7 @@ const v1=$('v1'), v2=$('v2'), v3=$('v3');
 const ns=$('numSelect'), rb=$('roleBody'), oa=$('optArea');
 const pv=$('preview'), tx=$('text'), lb=$('label'), br=$('bar');
 const da=$('dots'), at=$('autoToggle'), bp=$('btnAdvance'), bs=$('btnStop'), ba=$('btnAgain');
-const vs=$('voiceSel'), ss=$('speechStatus'), ap=$('audioPlayer');
+const pi=$('pauseInput'), audioStatus=$('audioStatus'), ap=$('audioPlayer');
 const btnStart=$('btnStart'), btnTestSound=$('btnTestSound');
 
 // === HELPERS ===
@@ -206,7 +205,6 @@ function evils() {
   return a;
 }
 function goods(){ return [...CFG[n].good]; }
-function has(r){ return evils().includes(r); }
 function jn(l){ return l.join('、'); }
 const ROLE_AUDIO_KEY = {
   '刺客':'assassin',
@@ -219,48 +217,46 @@ function roleAudioKey(roles){ return roles.map(r=>ROLE_AUDIO_KEY[r]||r).join('-'
 function audioSrc(i){
   const ev = evils();
   if(i===0) return 'audio/close-eyes.mp3';
-  if(i===2) return 'audio/evil-close-eyes.mp3';
-  if(i===4) return 'audio/percival.mp3';
-  if(i===5) return 'audio/dawn.mp3';
   if(i===1) {
     const visible = ev.filter(r => r!=='奥伯伦');
-    return `audio/evil-${roleAudioKey(visible)}${ev.includes('奥伯伦')?'-oberon-note':''}.mp3`;
+    return `audio/evil-${roleAudioKey(visible)}.mp3`;
   }
-  if(i===3) {
+  if(i===3) return 'audio/evil-close-eyes.mp3';
+  if(i===4) {
     const thumbs = ev.filter(r => r!=='莫德雷德');
-    return `audio/merlin-${roleAudioKey(thumbs)}${ev.includes('莫德雷德')?'-mordred-note':''}.mp3`;
+    return `audio/merlin-${roleAudioKey(thumbs)}.mp3`;
   }
+  if(i===6) return 'audio/merlin-close-eyes.mp3';
+  if(i===7) return 'audio/percival.mp3';
+  if(i===9) return 'audio/percival-close-eyes.mp3';
+  if(i===10) return 'audio/dawn.mp3';
   return '';
 }
 
 // === SCRIPT ===
 function gen() {
   const ev = evils();
-  const s2o = ev.filter(r => r!=='奥伯伦'), thumbs = ev.filter(r => r!=='莫德雷德');
+  const visible = ev.filter(r => r!=='奥伯伦'), thumbs = ev.filter(r => r!=='莫德雷德');
   const st = [];
-  st.push({ sec:'天黑闭眼', txt:['请所有人闭上眼睛，双手握拳放在桌上'] });
-  const s2t = [`${jn(s2o)}请睁开眼睛，确认彼此身份`];
-  if(has('奥伯伦')) s2t.push('奥伯伦不参与睁眼，继续闭眼');
-  st.push({ sec:'阵营相识', txt:s2t, delay:5000 });
+  st.push({ sec:'天黑闭眼', txt:['请所有人闭上眼睛'] });
+  const s2t = [`${jn(visible)}请睁开眼睛`];
+  st.push({ sec:'阵营相识', txt:s2t });
+  st.push({ sec:'阵营相识', pause:true, pauseLabel:'确认彼此身份' });
   st.push({ sec:'阵营相识', txt:['请闭上眼睛'] });
-  const s3t = ['梅林请睁开眼睛'];
-  s3t.push(`请${jn(thumbs)}竖起大拇指`);
-  if(has('莫德雷德')) s3t.push('莫德雷德不竖大拇指，梅林看不见莫德雷德');
-  s3t.push('请梅林记住这些竖起大拇指的玩家');
-  s3t.push('梅林请闭上眼睛');
+  const s3t = [`请${jn(thumbs)}竖起大拇指`, '梅林请睁开眼睛'];
   st.push({ sec:'梅林识人', txt:s3t });
-  st.push({ sec:'派西维尔辨人', txt:['请梅林和莫甘娜竖起大拇指','派西维尔请睁开眼睛，看清这两位竖起大拇指的玩家','派西维尔请闭上眼睛'] });
+  st.push({ sec:'梅林识人', pause:true, pauseLabel:'请等待' });
+  st.push({ sec:'梅林识人', txt:['梅林请闭上眼睛', '请收回大拇指'] });
+  st.push({ sec:'派西维尔辨人', txt:['请梅林和莫甘娜竖起大拇指','派西维尔请睁开眼睛'] });
+  st.push({ sec:'派西维尔辨人', pause:true, pauseLabel:'请等待' });
+  st.push({ sec:'派西维尔辨人', txt:['派西维尔请闭上眼睛', '请收回大拇指'] });
   st.push({ sec:'天亮', txt:['天亮了，请所有人睁开眼睛'] });
   return st;
 }
 
-// === TTS safety ===
-const hasSpeech = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
-let speakRun = 0;
-function clearSpeechFallback() { if(fb){ clearTimeout(fb); fb=null; } }
-function stopSpeech() {
-  speakRun++;
-  clearSpeechFallback();
+// === AUDIO ===
+function stopAudio() {
+  audioRun++;
   if(ap){
     ap.pause();
     ap.removeAttribute('src');
@@ -268,134 +264,57 @@ function stopSpeech() {
     ap.onerror = null;
     try { ap.load(); } catch(e){}
   }
-  if(hasSpeech) try{ speechSynthesis.cancel(); }catch(e){}
 }
-function resumeSpeech() {
-  if(!hasSpeech) return;
-  try { speechSynthesis.resume(); } catch(e){}
-}
-function setSpeechStatus(text, warn=false) {
-  ss.textContent = text || '';
-  ss.classList.toggle('warn', !!warn);
+function setAudioStatus(text, warn=false) {
+  audioStatus.textContent = text || '';
+  audioStatus.classList.toggle('warn', !!warn);
 }
 function absoluteAudioUrl(src) {
   return new URL(src, window.location.href).href;
 }
-
-// === TTS ===
-function speakWithBrowser(text, token, done) {
-  if(!hasSpeech){
-    setSpeechStatus('当前浏览器不支持语音朗读，也未能播放静态音频', true);
-    return null;
-  }
-  try {
-    loadVoices();
-    resumeSpeech();
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang='zh-CN'; u.rate=.85; u.pitch=1;
-    if(voice) u.voice=voice;
-    fb = setTimeout(() => {
-      if(token!==speakRun) return;
-      try{ speechSynthesis.cancel(); }catch(e){}
-      clearSpeechFallback();
-      done();
-    }, Math.max(10000, text.length * 420));
-    u.onstart = () => setSpeechStatus('正在使用浏览器语音朗读');
-    u.onend = done;
-    u.onerror = () => {
-      if(token!==speakRun) return;
-      clearSpeechFallback();
-      setSpeechStatus('浏览器语音被阻止，请手动点“下一步”，或换 Safari/Chrome 系统浏览器', true);
-    };
-    speechSynthesis.speak(u);
-    setTimeout(resumeSpeech, 250);
-    setTimeout(resumeSpeech, 1000);
-    return u;
-  } catch(e) {
-    setSpeechStatus('浏览器语音启动失败，请手动点“下一步”', true);
-    return null;
-  }
-}
-
-function speak(txts, cb, src) {
-  const text = txts.join('。');
-  if(!text.trim()){ if(cb) cb(); return null; }
-  stopSpeech();
-  const token = ++speakRun;
+function playAudio(src, cb) {
+  if(!src){ if(cb) cb(); return; }
+  stopAudio();
+  const token = ++audioRun;
   let fired = false;
   const done = () => {
-    if(fired || token!==speakRun) return;
+    if(fired || token!==audioRun) return;
     fired = true;
-    clearSpeechFallback();
-    setSpeechStatus('');
+    setAudioStatus('');
     if(cb) cb();
   };
-
-  if(src && ap) {
-    try {
-      setSpeechStatus('正在播放静态音频');
-      ap.onended = done;
-      ap.onerror = () => {
-        if(fired || token!==speakRun) return;
-        ap.onended = null;
-        ap.onerror = null;
-        setSpeechStatus('静态音频不可用，尝试浏览器语音', true);
-        speakWithBrowser(text, token, done);
-      };
-      ap.src = absoluteAudioUrl(src);
-      ap.currentTime = 0;
-      ap.load();
-      const p = ap.play();
-      if(p && typeof p.catch === 'function') {
-        p.catch(() => {
-          if(fired || token!==speakRun) return;
-          ap.onended = null;
-          ap.onerror = null;
-          setSpeechStatus('静态音频播放被阻止，尝试浏览器语音', true);
-          speakWithBrowser(text, token, done);
-        });
-      }
-      return ap;
-    } catch(e) {
-      return speakWithBrowser(text, token, done);
+  try {
+    setAudioStatus('正在播放音频');
+    ap.onended = done;
+    ap.onerror = () => {
+      if(fired || token!==audioRun) return;
+      setAudioStatus('音频播放失败，请手动点"下一步"', true);
+    };
+    ap.src = absoluteAudioUrl(src);
+    ap.currentTime = 0;
+    ap.load();
+    const p = ap.play();
+    if(p && typeof p.catch === 'function') {
+      p.catch(() => {
+        if(fired || token!==audioRun) return;
+        setAudioStatus('音频被浏览器阻止，请手动点"下一步"或重新点开始主持', true);
+      });
     }
+  } catch(e) {
+    setAudioStatus('音频启动失败，请手动点"下一步"', true);
   }
-
-  return speakWithBrowser(text, token, done);
 }
 
-// === VOICE ===
-function loadVoices() {
-  if(!hasSpeech){ vs.innerHTML='<option value="">默认语音</option>'; return; }
-  try {
-    const vo = speechSynthesis.getVoices().filter(v => v.lang.startsWith('zh'));
-    vs.innerHTML = '<option value="">默认语音</option>';
-    if(!vo.length) return;
-    let fe = vo.find(v => /hui|yao|han|ting|xiao|女/i.test(v.name));
-    let ma = vo.find(v => /kang|yun|qiang|男/i.test(v.name));
-    if(!fe) fe=vo[0];
-    if(!ma) ma=vo.find(v => v!==fe)||null;
-    vs.innerHTML += `<option value="${fe.name}">女声</option>`;
-    if(ma) vs.innerHTML += `<option value="${ma.name}">男声</option>`;
-    try {
-      const saved = localStorage.getItem('avox')||'';
-      vs.value = saved;
-      voice = saved ? vo.find(v=>v.name===saved)||null : null;
-    } catch(e){}
-  } catch(e){ vs.innerHTML='<option value="">默认语音</option>'; }
-}
-if(hasSpeech){ speechSynthesis.onvoiceschanged = loadVoices; }
-loadVoices();
-// Retry voice loading (mobile browsers may load voices lazily)
-setTimeout(loadVoices, 500);
-setTimeout(loadVoices, 2000);
-vs.onchange = () => {
-  if(!hasSpeech) return;
-  try {
-    const nm = vs.value;
-    voice = nm ? speechSynthesis.getVoices().filter(v=>v.lang.startsWith('zh')).find(v=>v.name===nm)||null : null;
-    try { localStorage.setItem('avox', nm); } catch(e){}
-  } catch(e){}
+// === PAUSE DURATION ===
+try {
+  const saved = localStorage.getItem('apause');
+  if(saved){ const v=parseInt(saved); if(v>=1&&v<=60) pauseDuration=v; }
+} catch(e){}
+pi.value = pauseDuration;
+pi.onchange = () => {
+  const v=parseInt(pi.value);
+  if(v>=1&&v<=60){ pauseDuration=v; try{ localStorage.setItem('apause',pi.value); }catch(e){} }
+  else pi.value=pauseDuration;
 };
 
 // === VIEW 1 ===
@@ -426,52 +345,49 @@ function renderCfg() {
 // === VIEW 2 ===
 function renderPv() {
   const st=gen();
-  pv.innerHTML=st.map((s,i)=>`<div class="script-step"><div class="script-num">${i+1}</div><div><div class="script-text"><strong>${s.sec}</strong></div>${s.txt.map(t=>`<div class="script-sub">· ${t}</div>`).join('')}</div></div>`).join('');
+  pv.innerHTML=st.map((s,i)=>`<div class="script-step"><div class="script-num">${i+1}</div><div><div class="script-text"><strong>${s.sec}</strong>${s.pause?' <span style="color:#888;font-size:.8rem">[暂停 '+pauseDuration+'秒]</span>':''}</div>${(s.txt||[]).map(t=>`<div class="script-sub">· ${t}</div>`).join('')}</div></div>`).join('');
 }
 
 // === VIEW 3 ===
-function startExec(opts={}) {
-  autoPlay = at.checked;
-  sects=gen(); cur=0; paused=false; tmr=null; fb=null; cnt=null;
-  setSpeechStatus('');
+function startExec() {
+  sects=gen(); cur=0; tmr=null; cnt=null;
+  setAudioStatus('');
   da.innerHTML=sects.map((_,i)=>`<div class="step-dot${i===0?' active':''}"></div>`).join('');
   ba.classList.add('hidden');
   bp.classList.remove('hidden'); bs.classList.remove('hidden');
   at.parentElement.parentElement.classList.remove('hidden');
   bp.textContent='下一步';
-  showSec(0, { silent: !!opts.silentFirst });
-  if(opts.silentFirst && autoPlay) playSec(0);
+  showSec(0);
 }
 function playSec(i) {
   const sec = sects[i];
   if(!sec) return;
-  utt=speak(sec.txt, ()=>{
-    if(paused) return;
-    if(sec.delay){
-      let rem=sec.delay/1000;
-      cnt=setInterval(()=>{ rem--; if(rem>0) tx.textContent='请确认彼此身份... '+rem+'秒'; else{ clearInterval(cnt); cnt=null; } },1000);
-      tmr=setTimeout(()=>{ tmr=null; if(!paused) showSec(i+1); },sec.delay);
+  playAudio(audioSrc(i), ()=>{
+    if(sec.pause){
+      const delayMs = pauseDuration * 1000;
+      let rem = pauseDuration;
+      const label = sec.pauseLabel || '请等待';
+      cnt=setInterval(()=>{ rem--; if(rem>0) tx.textContent=label+'... '+rem+'秒'; else{ clearInterval(cnt); cnt=null; } },1000);
+      tmr=setTimeout(()=>{ tmr=null; showSec(i+1); },delayMs);
     }else{ showSec(i+1); }
-  }, audioSrc(i));
+  });
 }
-function showSec(i, opts={}) {
+function showSec(i) {
   if(i>=sects.length){ done(); return; }
-  cur=i; paused=false;
+  cur=i;
   const sec=sects[i];
   da.querySelectorAll('.step-dot').forEach((d,j)=>{ d.classList.toggle('active',j===i); d.classList.toggle('done',j<i); });
   lb.textContent=sec.sec;
-  tx.textContent=sec.txt.join('\n');
+  tx.textContent=sec.pause ? (sec.pauseLabel||'') : (sec.txt||[]).join('\n');
   br.style.width=((i+1)/sects.length*100)+'%';
   bp.disabled=false;
 
-  if(autoPlay && !opts.silent) playSec(i);
+  if(at.checked) playSec(i);
 }
 function advance() {
-  paused = true; // prevent onend from double-advancing
-  stopSpeech();
+  stopAudio();
   if(tmr){ clearTimeout(tmr); tmr=null; }
   if(cnt){ clearInterval(cnt); cnt=null; }
-  if(fb){ clearTimeout(fb); fb=null; }
   showSec(cur+1);
 }
 function done() {
@@ -480,47 +396,28 @@ function done() {
   br.style.width='100%';
   bp.classList.add('hidden'); bs.classList.add('hidden'); ba.classList.remove('hidden');
   at.parentElement.parentElement.classList.add('hidden');
-  setSpeechStatus('');
-  stopSpeech();
+  setAudioStatus('');
+  stopAudio();
 }
 function stopExec() {
-  stopSpeech();
+  stopAudio();
   if(tmr){ clearTimeout(tmr); tmr=null; }
   if(cnt){ clearInterval(cnt); cnt=null; }
-  if(fb){ clearTimeout(fb); fb=null; }
   showV(v1); renderCfg();
 }
 function toggleAuto() {
-  autoPlay=at.checked;
-  setSpeechStatus('');
-  if(!autoPlay){ stopSpeech(); if(tmr){ clearTimeout(tmr); tmr=null; } if(cnt){ clearInterval(cnt); cnt=null; } if(fb){ clearTimeout(fb); fb=null; } }
+  setAudioStatus('');
+  if(!at.checked){ stopAudio(); if(tmr){ clearTimeout(tmr); tmr=null; } if(cnt){ clearInterval(cnt); cnt=null; } }
 }
 
 // === NAV ===
 function showV(v) {
-  stopSpeech();
+  stopAudio();
   v1.classList.add('hidden'); v2.classList.add('hidden'); v3.classList.add('hidden');
   v.classList.remove('hidden');
 }
 function testSound() {
-  stopSpeech();
-  const token = ++speakRun;
-  let fired = false;
-  const done = () => {
-    if(fired || token!==speakRun) return;
-      fired = true;
-      setSpeechStatus('');
-  };
-  setSpeechStatus('正在测试静态音频');
-  ap.onended = done;
-  ap.onerror = () => setSpeechStatus('测试音频播放失败：内置浏览器可能阻止了音频，或网络未加载到 mp3', true);
-  ap.src = absoluteAudioUrl('audio/close-eyes.mp3');
-  ap.currentTime = 0;
-  ap.load();
-  const p = ap.play();
-  if(p && typeof p.catch === 'function') {
-    p.catch(() => setSpeechStatus('测试音频被浏览器阻止，请再点一次测试声音，或在系统浏览器打开', true));
-  }
+  playAudio('audio/close-eyes.mp3');
 }
 $('btnNext').onclick = () => { renderPv(); showV(v2); };
 $('btnBack').onclick = () => showV(v1);
@@ -533,7 +430,7 @@ function handleStart(e) {
     e.preventDefault();
   }
   showV(v3);
-  startExec({ silentFirst: true });
+  startExec();
 }
 btnTestSound.addEventListener('touchend', e => { e.preventDefault(); testSound(); }, { passive:false });
 btnTestSound.addEventListener('click', testSound);

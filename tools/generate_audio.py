@@ -48,29 +48,33 @@ def gen(player_count, mordred=False, oberon=False):
     merlin_thumbs = [role for role in evil_roles if role != "莫德雷德"]
     steps = []
 
-    steps.append(["请所有人闭上眼睛，双手握拳放在桌上"])
+    # 0: close eyes
+    steps.append(["请所有人闭上眼睛"])
 
-    evil_meet = [f"{join_roles(visible_evil)}请睁开眼睛，确认彼此身份"]
-    if "奥伯伦" in evil_roles:
-        evil_meet.append("奥伯伦不参与睁眼，继续闭眼")
-    steps.append(evil_meet)
+    # 1: evil meet - open eyes
+    steps.append([f"{join_roles(visible_evil)}请睁开眼睛"])
 
+    # 2: evil close eyes
     steps.append(["请闭上眼睛"])
 
-    merlin = ["梅林请睁开眼睛", f"请{join_roles(merlin_thumbs)}竖起大拇指"]
-    if "莫德雷德" in evil_roles:
-        merlin.append("莫德雷德不竖大拇指，梅林看不见莫德雷德")
-    merlin.append("请梅林记住这些竖起大拇指的玩家")
-    merlin.append("梅林请闭上眼睛")
-    steps.append(merlin)
+    # 3: merlin see thumbs
+    steps.append([f"请{join_roles(merlin_thumbs)}竖起大拇指", "梅林请睁开眼睛"])
 
+    # 4: merlin - put thumbs down, close eyes
+    steps.append(["梅林请闭上眼睛", "请收回大拇指"])
+
+    # 5: percival open eyes
     steps.append([
         "请梅林和莫甘娜竖起大拇指",
-        "派西维尔请睁开眼睛，看清这两位竖起大拇指的玩家",
-        "派西维尔请闭上眼睛",
+        "派西维尔请睁开眼睛",
     ])
 
+    # 6: percival - put thumbs down, close eyes
+    steps.append(["派西维尔请闭上眼睛", "请收回大拇指"])
+
+    # 7: dawn
     steps.append(["天亮了，请所有人睁开眼睛"])
+
     return ["。".join(step) for step in steps]
 
 
@@ -93,20 +97,22 @@ def audio_name(player_count, mordred, oberon, step):
     evil_roles = evils(player_count, mordred, oberon)
     if step == 0:
         return "close-eyes.mp3"
-    if step == 2:
-        return "evil-close-eyes.mp3"
-    if step == 4:
-        return "percival.mp3"
-    if step == 5:
-        return "dawn.mp3"
     if step == 1:
         visible = [role for role in evil_roles if role != "奥伯伦"]
-        suffix = "-oberon-note" if "奥伯伦" in evil_roles else ""
-        return f"evil-{role_audio_key(visible)}{suffix}.mp3"
+        return f"evil-{role_audio_key(visible)}.mp3"
+    if step == 2:
+        return "evil-close-eyes.mp3"
     if step == 3:
         thumbs = [role for role in evil_roles if role != "莫德雷德"]
-        suffix = "-mordred-note" if "莫德雷德" in evil_roles else ""
-        return f"merlin-{role_audio_key(thumbs)}{suffix}.mp3"
+        return f"merlin-{role_audio_key(thumbs)}.mp3"
+    if step == 4:
+        return "merlin-close-eyes.mp3"
+    if step == 5:
+        return "percival.mp3"
+    if step == 6:
+        return "percival-close-eyes.mp3"
+    if step == 7:
+        return "dawn.mp3"
     raise ValueError(f"Unknown step: {step}")
 
 
