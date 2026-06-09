@@ -221,6 +221,7 @@ function audioSrc(i){
     const visible = ev.filter(r => r!=='奥伯伦');
     return `audio/evil-${roleAudioKey(visible)}.mp3`;
   }
+  if(i===2) return 'audio/evil-confirm.mp3';
   if(i===3) return 'audio/evil-close-eyes.mp3';
   if(i===4) {
     const thumbs = ev.filter(r => r!=='莫德雷德');

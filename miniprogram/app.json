@@ -1,0 +1,12 @@
+{
+  "pages": [
+    "pages/setup/setup",
+    "pages/host/host"
+  ],
+  "window": {
+    "navigationBarTitleText": "阿瓦隆主持",
+    "navigationBarBackgroundColor": "#1a1a2e",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#1a1a2e"
+  }
+}

@@ -1,0 +1,94 @@
+<view class="app">
+  <view class="header">
+    <text class="title">阿瓦隆主持人</text>
+  </view>
+
+  <step-dots total="3" current="0" />
+
+  <!-- 人数选择 -->
+  <view class="card">
+    <h2>选择玩家人数</h2>
+    <view class="num-select">
+      <view
+        wx:for="{{counts}}"
+        wx:key="index"
+        class="num-btn {{item === playerCount ? 'active' : ''}}"
+        bindtap="onCount"
+        data-n="{{item}}"
+      >{{item}}</view>
+    </view>
+  </view>
+
+  <!-- 角色配置 -->
+  <view class="card">
+    <h2>角色配置</h2>
+    <view class="role-table">
+      <view class="role-row">
+        <view class="role-side good">好人方 · {{goods.length}}人</view>
+        <view class="role-tags">
+          <text wx:for="{{goods}}" wx:key="index" class="tag good">{{item}}</text>
+        </view>
+      </view>
+      <view class="role-row">
+        <view class="role-side evil">坏人方 · {{evils.length}}人</view>
+        <view class="role-tags">
+          <text wx:for="{{evils}}" wx:key="index" class="tag evil">{{item}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view wx:if="{{showOptions}}" class="options">
+      <view class="option-item">
+        <view>
+          <view class="option-label">替换为莫德雷德</view>
+          <view class="option-desc">梅林看不见莫德雷德</view>
+        </view>
+        <switch checked="{{mordred}}" bindchange="onMordred" color="#e8d5b7" />
+      </view>
+      <view class="option-item">
+        <view>
+          <view class="option-label">替换为奥伯伦</view>
+          <view class="option-desc">奥伯伦不参与坏人睁眼相识</view>
+        </view>
+        <switch checked="{{oberon}}" bindchange="onOberon" color="#e8d5b7" />
+      </view>
+    </view>
+
+    <view class="pause-row">
+      <text class="pause-label">暂停时长</text>
+      <view class="stepper">
+        <view class="step-btn" bindtap="onPauseMinus">-</view>
+        <input class="step-val" type="number" value="{{pauseDuration}}" bindinput="onPause" />
+        <text class="step-unit">秒</text>
+        <view class="step-btn" bindtap="onPausePlus">+</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 剧本预览 -->
+  <view class="card">
+    <h2>剧本预览</h2>
+    <view wx:for="{{script}}" wx:key="index" class="script-section">
+      <view class="script-head">
+        <view class="script-num">{{index + 1}}</view>
+        <text class="script-bold">{{item.sec}}</text>
+      </view>
+      <view class="script-body">
+        <block wx:for="{{item.items}}" wx:for-item="s" wx:key="idx">
+          <view wx:if="{{s.txt}}" wx:for="{{s.txt}}" wx:for-item="t" wx:key="*this" class="script-line">
+            <text class="script-sub">· {{t}}</text>
+          </view>
+          <view wx:if="{{s.pause}}" class="script-line">
+            <text class="script-pause">· [暂停 {{pauseDuration}}秒] {{s.pauseLabel}}</text>
+          </view>
+        </block>
+      </view>
+    </view>
+  </view>
+
+  <!-- 操作按钮 -->
+  <view class="btn-row">
+    <button class="btn btn-secondary" bindtap="onTestSound">测试声音</button>
+    <button class="btn btn-primary" bindtap="onStart">开始主持</button>
+  </view>
+</view>

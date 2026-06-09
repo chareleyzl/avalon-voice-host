@@ -1,0 +1,8 @@
+{
+  "usingComponents": {
+    "step-dots": "../../components/step-dots/step-dots",
+    "progress-bar": "../../components/progress-bar/progress-bar"
+  },
+  "navigationBarTitleText": "主持中",
+  "disableScroll": true
+}

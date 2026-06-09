@@ -1,0 +1,15 @@
+.dots {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin: 0 12px 12px;
+}
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #3a3a5c;
+  transition: background .3s;
+}
+.dot.active { background: #e8d5b7; }
+.dot.done { background: #5a9e6f; }

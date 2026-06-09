@@ -54,7 +54,10 @@ def gen(player_count, mordred=False, oberon=False):
     # 1: evil meet - open eyes
     steps.append([f"{join_roles(visible_evil)}请睁开眼睛"])
 
-    # 2: evil close eyes
+    # 2: evil confirm each other
+    steps.append(["确认彼此身份"])
+
+    # 3: evil close eyes
     steps.append(["请闭上眼睛"])
 
     # 3: merlin see thumbs
@@ -101,17 +104,19 @@ def audio_name(player_count, mordred, oberon, step):
         visible = [role for role in evil_roles if role != "奥伯伦"]
         return f"evil-{role_audio_key(visible)}.mp3"
     if step == 2:
-        return "evil-close-eyes.mp3"
+        return "evil-confirm.mp3"
     if step == 3:
+        return "evil-close-eyes.mp3"
+    if step == 4:
         thumbs = [role for role in evil_roles if role != "莫德雷德"]
         return f"merlin-{role_audio_key(thumbs)}.mp3"
-    if step == 4:
-        return "merlin-close-eyes.mp3"
     if step == 5:
-        return "percival.mp3"
+        return "merlin-close-eyes.mp3"
     if step == 6:
-        return "percival-close-eyes.mp3"
+        return "percival.mp3"
     if step == 7:
+        return "percival-close-eyes.mp3"
+    if step == 8:
         return "dawn.mp3"
     raise ValueError(f"Unknown step: {step}")
 

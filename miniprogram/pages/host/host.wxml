@@ -1,0 +1,34 @@
+<view class="app">
+  <view class="header">
+    <text class="title">主持中</text>
+  </view>
+
+  <step-dots total="{{sects.length}}" current="{{cur}}" />
+
+  <view class="card exec-area">
+    <text class="exec-label">{{label}}</text>
+    <view class="exec-text" bindtap="onTapText">
+      <text>{{text}}</text>
+    </view>
+
+    <progress-bar percent="{{barPercent}}" />
+
+    <view wx:if="{{showAuto}}" class="auto-row">
+      <switch checked="{{autoPlay}}" bindchange="onAuto" color="#e8d5b7" />
+      <text>自动播放</text>
+    </view>
+
+    <text wx:if="{{audioStatus}}" class="audio-status {{audioWarn ? 'warn' : ''}}">{{audioStatus}}</text>
+
+    <view class="btn-row">
+      <button wx:if="{{!done}}" class="btn btn-secondary" bindtap="onStop">结束</button>
+      <button
+        wx:if="{{!done}}"
+        class="btn btn-primary"
+        bindtap="onAdvance"
+        disabled="{{advancing}}"
+      >{{advancing ? '切换中' : '下一步'}}</button>
+      <button wx:if="{{done}}" class="btn btn-primary" bindtap="onAgain">重新开始</button>
+    </view>
+  </view>
+</view>

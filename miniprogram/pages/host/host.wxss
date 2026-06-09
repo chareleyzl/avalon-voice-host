@@ -1,0 +1,21 @@
+.app { width: 100%; max-width: 480px; margin: 0 auto; padding: 16px 0; }
+
+.header { text-align: center; margin-bottom: 16px; }
+.title { font-size: 1.4rem; color: #e8d5b7; letter-spacing: 2px; }
+
+.exec-area { text-align: center; }
+.exec-label { font-size: 0.8rem; color: #888; margin-bottom: 6px; }
+.exec-text {
+  font-size: 1.3rem; line-height: 1.6; color: #e8d5b7;
+  min-height: 140px; display: flex; align-items: center; justify-content: center;
+  padding: 16px 0; white-space: pre-line;
+}
+
+.auto-row { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.8rem; color: #888; }
+
+.audio-status { display: block; min-height: 18px; margin-bottom: 6px; font-size: 0.75rem; color: #888; }
+.audio-status.warn { color: #e8d5b7; }
+
+@media (max-width: 360px) {
+  .exec-text { font-size: 1.15rem; min-height: 130px; }
+}

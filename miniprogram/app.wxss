@@ -1,0 +1,74 @@
+page {
+  --bg-primary: #1a1a2e;
+  --bg-card: #16213e;
+  --accent: #e8d5b7;
+  --text-primary: #e0e0e0;
+  --text-muted: #888;
+  --border: #2a2a4a;
+  --green: #5a9e6f;
+  --red: #c0392b;
+
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-size: 16px;
+}
+
+.card {
+  background: var(--bg-card);
+  border-radius: 12px;
+  padding: 16px;
+  margin: 0 12px 12px;
+  border: 1px solid var(--border);
+}
+
+.card h2 {
+  font-size: 1rem;
+  color: var(--accent);
+  margin-bottom: 10px;
+}
+
+.btn {
+  display: block;
+  width: calc(100% - 24px);
+  margin: 0 12px 10px;
+  padding: 14px;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  text-align: center;
+  letter-spacing: 1px;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: var(--bg-primary);
+}
+
+.btn-secondary {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+}
+
+.btn-row {
+  display: flex;
+  margin: 0 12px;
+  gap: 8px;
+}
+
+.btn-row .btn {
+  flex: 1;
+  margin: 0;
+}
+
+.toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+}
+
+.toggle switch {
+  flex-shrink: 0;
+}

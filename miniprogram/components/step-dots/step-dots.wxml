@@ -1,0 +1,7 @@
+<view class="dots">
+  <view
+    wx:for="{{dots}}"
+    wx:key="index"
+    class="dot {{item.cls}}"
+  ></view>
+</view>
