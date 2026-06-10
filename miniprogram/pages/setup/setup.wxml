@@ -3,8 +3,6 @@
     <text class="title">阿瓦隆主持人</text>
   </view>
 
-  <step-dots total="3" current="0" />
-
   <!-- 人数选择 -->
   <view class="card">
     <h2>选择玩家人数</h2>
@@ -24,13 +22,13 @@
     <h2>角色配置</h2>
     <view class="role-table">
       <view class="role-row">
-        <view class="role-side good">好人方 · {{goods.length}}人</view>
+        <view class="role-side good">蓝方 · {{goods.length}}人</view>
         <view class="role-tags">
           <text wx:for="{{goods}}" wx:key="index" class="tag good">{{item}}</text>
         </view>
       </view>
       <view class="role-row">
-        <view class="role-side evil">坏人方 · {{evils.length}}人</view>
+        <view class="role-side evil">红方 · {{evils.length}}人</view>
         <view class="role-tags">
           <text wx:for="{{evils}}" wx:key="index" class="tag evil">{{item}}</text>
         </view>
