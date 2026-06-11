@@ -1,6 +1,17 @@
 const { CFG, evils, goods, gen, audioPath, previewGroups } = require('../../utils/config');
 const audio = require('../../utils/audio-manager');
 
+const ROLE_DESC = {
+  '梅林':     { side: 'good', desc: '开局看到所有坏人（除莫德雷德）' },
+  '派西维尔': { side: 'good', desc: '开局看到梅林和莫甘娜' },
+  '忠臣':     { side: 'good', desc: '无特殊信息，靠逻辑推理' },
+  '莫甘娜':   { side: 'evil', desc: '伪装成梅林，混淆派西维尔' },
+  '刺客':     { side: 'evil', desc: '游戏结束时刺杀梅林' },
+  '莫德雷德': { side: 'evil', desc: '梅林看不到他' },
+  '爪牙':     { side: 'evil', desc: '无特殊能力，协助破坏任务' },
+  '奥伯伦':   { side: 'evil', desc: '不被其他坏人知道' }
+};
+
 Page({
   data: {
     counts: [5, 6, 7, 8, 9, 10],
@@ -11,7 +22,9 @@ Page({
     pauseDuration: 5,
     goods: [],
     evils: [],
-    script: []
+    script: [],
+    showRules: false,
+    rules: { playerCount: 0, goodCount: 0, evilCount: 0, goodRoles: [], evilRoles: [] }
   },
 
   onLoad() {
@@ -99,11 +112,41 @@ Page({
     }
   },
 
-  onTestSound() {
-    const cp = audioPath(this.data.playerCount, this.data.mordred, this.data.oberon, 0);
-    audio.create();
-    audio.play(cp);
+  buildRules() {
+    const { playerCount, mordred } = this.data;
+    const ev = evils(playerCount, this.data.mordred, this.data.oberon);
+    const gd = goods(playerCount);
+
+    const merlinDesc = mordred ? '开局看到所有坏人（除莫德雷德）' : '开局看到所有坏人';
+    const goodRoles = [];
+    const seen = {};
+    for (const r of gd) {
+      if (seen[r]) continue;
+      seen[r] = true;
+      const desc = r === '梅林' ? merlinDesc : (ROLE_DESC[r] || {}).desc || '';
+      goodRoles.push({ name: r, desc });
+    }
+
+    const evilRoles = [];
+    const seen2 = {};
+    for (const r of ev) {
+      if (seen2[r]) continue;
+      seen2[r] = true;
+      evilRoles.push({ name: r, desc: (ROLE_DESC[r] || {}).desc || '' });
+    }
+
+    return { playerCount, goodCount: gd.length, evilCount: ev.length, goodRoles, evilRoles };
   },
+
+  onShowRules() {
+    this.setData({ showRules: true, rules: this.buildRules() });
+  },
+
+  onCloseRules() {
+    this.setData({ showRules: false });
+  },
+
+  noop() {},
 
   onStart() {
     const { playerCount, mordred, oberon, pauseDuration } = this.data;

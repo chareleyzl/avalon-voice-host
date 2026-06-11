@@ -31,10 +31,10 @@ game/
 ## 页面流程
 
 ```text
-角色配置 -> 剧本预览 -> 主持执行
-    ^           |          |
-    |-------- 返回修改      |
-    |------------ 结束/重新开始
+角色配置 + 剧本预览 -> 主持执行
+       |        ^          |
+       |------ 返回修改     |
+       |------------ 结束/重新开始
 ```
 
 ### 角色配置
@@ -48,7 +48,8 @@ game/
 ### 剧本预览
 
 - 根据人数和角色选项生成夜间流程。
-- “测试声音”播放 `audio/close-eyes.mp3`。
+- “游戏规则”弹窗展示根据当前配置定制的规则说明（人数、角色能力含变体说明、任务流程、胜利条件）。
+- 点击弹窗遮罩层或”已阅”按钮关闭。
 - “开始主持”进入执行页并播放第一段音频。
 
 ### 主持执行
@@ -109,7 +110,7 @@ const CFG = {
 - `audioSrc(stepIndex)`：根据当前配置返回 MP3 路径。
 - `playAudio(src, onEnd)`：播放静态 MP3，播放结束后回调。
 - `stopAudio()`：停止当前音频并清空 `<audio>`。
-- `testSound()`：播放 `audio/close-eyes.mp3`。
+- `buildRules()` / `showRules()` / `closeRules()`：生成并展示定制游戏规则弹窗。
 
 自动推进：
 
@@ -218,10 +219,20 @@ tcb hosting list avalon -e zl0312-7ghdq45zda52ea30
 https://zl0312-7ghdq45zda52ea30-1251698841.tcloudbaseapp.com/avalon/index.html
 ```
 
+## 游戏规则弹窗
+
+设置页”游戏规则”按钮触发 `showRules()`，根据当前人数 (`n`)、莫德雷德 (`mord`)、奥伯伦 (`ober`) 状态动态生成规则内容：
+
+- `buildRules()` 调用 `evils()` / `goods()` 获取实际角色列表
+- 梅林描述随莫德雷德开关变化：”开局看到所有坏人” / “开局看到所有坏人（除莫德雷德）”
+- 弹窗通过 `ontouchmove=”event.preventDefault()”` + `body.style.overflow='hidden'` 防止背景页面滚动
+- 规则内容区域独立滚动（`overflow-y: auto`），底部”已阅”按钮绝对定位
+- 点击遮罩层或”已阅”按钮关闭弹窗
+
 ## 验证清单
 
 - 页面脚本语法正确。
 - `audio/` 下存在 16 个 MP3。
 - `tools/generate_audio.py` 期望的文件名都能在 `audio/` 中找到。
-- “测试声音”可以播放 `close-eyes.mp3`。
+- “游戏规则”弹窗可正常打开/关闭，内容随人数和角色配置变化。
 - 主持流程能按 11 个步骤自动或手动推进。

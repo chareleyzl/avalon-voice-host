@@ -42,10 +42,20 @@ def role_audio_key(roles):
     return "-".join(ROLE_AUDIO_KEY[role] for role in roles)
 
 
+def uniq(lst):
+    seen = set()
+    result = []
+    for item in lst:
+        if item not in seen:
+            seen.add(item)
+            result.append(item)
+    return result
+
+
 def gen(player_count, mordred=False, oberon=False):
     evil_roles = evils(player_count, mordred, oberon)
-    visible_evil = [role for role in evil_roles if role != "奥伯伦"]
-    merlin_thumbs = [role for role in evil_roles if role != "莫德雷德"]
+    visible_evil = uniq([role for role in evil_roles if role != "奥伯伦"])
+    merlin_thumbs = uniq([role for role in evil_roles if role != "莫德雷德"])
     steps = []
 
     # 0: close eyes
@@ -101,14 +111,14 @@ def audio_name(player_count, mordred, oberon, step):
     if step == 0:
         return "close-eyes.mp3"
     if step == 1:
-        visible = [role for role in evil_roles if role != "奥伯伦"]
+        visible = uniq([role for role in evil_roles if role != "奥伯伦"])
         return f"evil-{role_audio_key(visible)}.mp3"
     if step == 2:
         return "evil-confirm.mp3"
     if step == 3:
         return "evil-close-eyes.mp3"
     if step == 4:
-        thumbs = [role for role in evil_roles if role != "莫德雷德"]
+        thumbs = uniq([role for role in evil_roles if role != "莫德雷德"])
         return f"merlin-{role_audio_key(thumbs)}.mp3"
     if step == 5:
         return "merlin-close-eyes.mp3"

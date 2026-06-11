@@ -30,17 +30,19 @@ function roleAudioKey(roles) {
   return roles.map(r => ROLE_AUDIO_KEY[r] || r).join('-');
 }
 
+function uniq(arr) { return [...new Set(arr)]; }
+
 function audioPath(playerCount, mordred, oberon, stepIndex) {
   const ev = evils(playerCount, mordred, oberon);
   let file = '';
   if (stepIndex === 0) file = 'close-eyes.mp3';
   else if (stepIndex === 1) {
-    const visible = ev.filter(r => r !== '奥伯伦');
+    const visible = uniq(ev.filter(r => r !== '奥伯伦'));
     file = `evil-${roleAudioKey(visible)}.mp3`;
   } else if (stepIndex === 2) file = 'evil-confirm.mp3';
   else if (stepIndex === 3) file = 'evil-close-eyes.mp3';
   else if (stepIndex === 4) {
-    const thumbs = ev.filter(r => r !== '莫德雷德');
+    const thumbs = uniq(ev.filter(r => r !== '莫德雷德'));
     file = `merlin-${roleAudioKey(thumbs)}.mp3`;
   } else if (stepIndex === 6) file = 'merlin-close-eyes.mp3';
   else if (stepIndex === 7) file = 'percival.mp3';
@@ -51,8 +53,8 @@ function audioPath(playerCount, mordred, oberon, stepIndex) {
 
 function gen(playerCount, mordred, oberon, pauseDuration) {
   const ev = evils(playerCount, mordred, oberon);
-  const visible = ev.filter(r => r !== '奥伯伦');
-  const thumbs = ev.filter(r => r !== '莫德雷德');
+  const visible = uniq(ev.filter(r => r !== '奥伯伦'));
+  const thumbs = uniq(ev.filter(r => r !== '莫德雷德'));
   const st = [];
   st.push({ sec:'天黑闭眼', txt:['请所有人闭上眼睛'] });
   st.push({ sec:'阵营相识', txt:[`${visible.join('、')}请睁开眼睛`] });

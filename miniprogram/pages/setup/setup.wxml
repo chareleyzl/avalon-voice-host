@@ -86,7 +86,66 @@
 
   <!-- 操作按钮 -->
   <view class="btn-row">
-    <button class="btn btn-secondary" bindtap="onTestSound">测试声音</button>
+    <button class="btn btn-secondary" bindtap="onShowRules">游戏规则</button>
     <button class="btn btn-primary" bindtap="onStart">开始主持</button>
+  </view>
+
+  <!-- 游戏规则弹窗 -->
+  <view wx:if="{{showRules}}" class="rules-overlay" bindtap="onCloseRules" catchtouchmove="noop">
+    <view class="rules-modal" catchtap="">
+      <view class="rules-header">
+        <text class="rules-title">游戏规则</text>
+        <view class="rules-close" bindtap="onCloseRules">✕</view>
+      </view>
+      <scroll-view class="rules-body" scroll-y="{{true}}" enhanced="{{true}}" show-scrollbar="{{false}}">
+        <!-- 基本设置 -->
+        <view class="rules-section">
+          <view class="rules-section-title">基本设置</view>
+          <view class="rules-text">· 本局共 <text class="rules-hl">{{rules.playerCount}}</text> 名玩家，其中蓝方 {{rules.goodCount}} 人、红方 {{rules.evilCount}} 人</view>
+        </view>
+
+        <!-- 角色能力 -->
+        <view class="rules-section">
+          <view class="rules-section-title">角色能力</view>
+          <view class="rules-subtitle good">蓝方</view>
+          <view wx:for="{{rules.goodRoles}}" wx:key="name" class="rules-role">
+            <text class="rules-role-name">· {{item.name}}</text>
+            <text class="rules-role-desc">：{{item.desc}}</text>
+          </view>
+          <view class="rules-subtitle evil">红方</view>
+          <view wx:for="{{rules.evilRoles}}" wx:key="name" class="rules-role">
+            <text class="rules-role-name">· {{item.name}}</text>
+            <text class="rules-role-desc">：{{item.desc}}</text>
+          </view>
+        </view>
+
+        <!-- 任务流程 -->
+        <view class="rules-section">
+          <view class="rules-section-title">任务流程</view>
+          <view class="rules-text"><text class="rules-bold">组队阶段：</text>队长选择若干玩家</view>
+          <view class="rules-text"><text class="rules-bold">投票阶段：</text>全员投票是否同意该队伍</view>
+          <view class="rules-text">　· 多数同意 → 进入任务</view>
+          <view class="rules-text">　· 多数反对 → 队长传给下家，重新组队</view>
+          <view class="rules-text">　· 连续 5 次反对 → 红方直接获胜</view>
+          <view class="rules-text"><text class="rules-bold">任务阶段：</text>队伍成员秘密投「成功」或「失败」</view>
+          <view class="rules-text">　· 蓝方只能投成功</view>
+          <view class="rules-text">　· 红方可选择投失败（或伪装投成功）</view>
+          <view class="rules-text">　· 结果仅公布成功/失败票数，不公布谁投的</view>
+        </view>
+
+        <!-- 胜利条件 -->
+        <view class="rules-section">
+          <view class="rules-section-title">胜利条件</view>
+          <view class="rules-subtitle good">蓝方获胜</view>
+          <view class="rules-text">· 成功完成 <text class="rules-hl">3 次任务</text>，且刺客未成功刺杀梅林</view>
+          <view class="rules-subtitle evil">红方获胜（满足任一）</view>
+          <view class="rules-text">· 任务失败达到 3 次</view>
+          <view class="rules-text">· 刺客成功刺杀梅林（蓝方完成 3 次任务后触发）</view>
+        </view>
+      </scroll-view>
+      <view class="rules-footer">
+        <button class="btn btn-primary rules-confirm" bindtap="onCloseRules">已阅</button>
+      </view>
+    </view>
   </view>
 </view>
