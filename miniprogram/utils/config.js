@@ -51,7 +51,7 @@ function audioPath(playerCount, mordred, oberon, stepIndex) {
   return file ? `/audio/${file}` : '';
 }
 
-function gen(playerCount, mordred, oberon, pauseDuration) {
+function gen(playerCount, mordred, oberon) {
   const ev = evils(playerCount, mordred, oberon);
   const visible = uniq(ev.filter(r => r !== '奥伯伦'));
   const thumbs = uniq(ev.filter(r => r !== '莫德雷德'));

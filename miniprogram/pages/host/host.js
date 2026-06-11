@@ -29,7 +29,7 @@ Page({
 
     audio.create();
 
-    this.sects = gen(playerCount, mordred, oberon, this.pauseDuration);
+    this.sects = gen(playerCount, mordred, oberon);
     this.setData({ sects: this.sects });
     this.showSec(0);
   },
@@ -114,9 +114,7 @@ Page({
   },
 
   onAgain() {
-    audio.stop();
-    this.clearTimers();
-    wx.redirectTo({ url: '/pages/setup/setup' });
+    this.onStop();
   },
 
   onAuto(e) {
@@ -127,6 +125,7 @@ Page({
 
   onTapText() {
     if (this.data.done) return;
+    this.setData({ advancing: true });
     this.advance();
   },
 

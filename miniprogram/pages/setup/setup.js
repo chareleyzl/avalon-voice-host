@@ -50,7 +50,7 @@ Page({
       goods: gd,
       evils: ev,
       showOptions: CFG[playerCount].min > 0,
-      script: previewGroups(gen(playerCount, mordred, oberon, pauseDuration))
+      script: previewGroups(gen(playerCount, mordred, oberon))
     });
   },
 
@@ -91,6 +91,7 @@ Page({
     if (v >= 1 && v <= 60) {
       this.setData({ pauseDuration: v });
       wx.setStorageSync('pauseDuration', v);
+      this.render();
     }
   },
 

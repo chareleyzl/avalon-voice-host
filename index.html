@@ -31,23 +31,38 @@ button, select, input { font: inherit; font-size: 16px; }
 }
 .card h2 { font-size: 1rem; color: #e8d5b7; margin-bottom: 10px; }
 
-.num-select { display: grid; grid-template-columns: repeat(auto-fit, 44px); justify-content: center; gap: 8px; }
+.num-select { display: flex; justify-content: flex-start; gap: 8px; flex-wrap: nowrap; }
 .num-btn {
   width: 44px; height: 44px; border-radius: 50%; border: 2px solid #3a3a5c;
-  background: #1a1a2e; color: #e0e0e0; font-size: 1.1rem;
+  background: #1a1a2e; color: #e0e0e0; font-size: 1rem; flex-shrink: 0;
   -webkit-appearance: none; -webkit-tap-highlight-color: transparent; cursor: pointer;
 }
 .num-btn.active { border-color: #e8d5b7; background: #e8d5b7; color: #1a1a2e; font-weight: bold; }
 
-.role-row { display: flex; padding: 4px 0; font-size: .9rem; }
-.role-row:first-child { margin-bottom: 2px; }
-.role-side { width: 80px; flex-shrink: 0; font-size: .8rem; padding: 4px 0; }
+.role-row { display: flex; align-items: center; padding: 3px 0; font-size: .85rem; }
+.role-side { width: 72px; flex-shrink: 0; font-size: .78rem; }
 .role-side.good { color: #5a8ecf; }
 .role-side.evil { color: #c0392b; }
-.role-tags { flex: 1; min-width: 0; }
-.role-tag { display: inline-block; font-size: .78rem; padding: 2px 7px; border-radius: 8px; margin: 2px; white-space: nowrap; }
+.role-tags { flex: 1; min-width: 0; line-height: 1; }
+.role-tag { display: inline-block; font-size: .75rem; padding: 2px 6px; border-radius: 6px; margin: 1px; white-space: nowrap; }
 .role-tag.good { background: rgba(90,142,207,.2); color: #5a8ecf; }
 .role-tag.evil { background: rgba(192,57,43,.2); color: #c0392b; }
+
+.pause-row { display: flex; align-items: center; justify-content: space-between; margin-top: 12px; }
+.pause-label { font-size: .8rem; color: #888; }
+.stepper { display: flex; align-items: center; gap: 4px; }
+.step-btn {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: #3a3a5c; color: #e8d5b7; border: none;
+  font-size: 1.2rem; font-weight: bold; cursor: pointer;
+  -webkit-appearance: none; -webkit-tap-highlight-color: transparent;
+}
+.stepper input {
+  width: 48px; padding: 6px 0; border-radius: 6px;
+  background: #1a1a2e; color: #e0e0e0;
+  border: 1px solid #3a3a5c; font-size: .85rem; text-align: center;
+}
+.step-unit { font-size: .8rem; color: #888; }
 
 .options { margin-top: 12px; }
 .option-item { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid #2a2a4a; }
@@ -111,11 +126,11 @@ button, select, input { font: inherit; font-size: 16px; }
   z-index: 1000;
 }
 .rules-modal {
-  width: 86%; height: 80vh;
+  width: 94%; height: 90vh;
   background: #16213e; border-radius: 14px;
   border: 1px solid #3a3a5c;
   overflow: hidden;
-  display: flex; flex-direction: column;
+  position: relative;
 }
 .rules-header {
   display: flex; align-items: center; justify-content: space-between;
@@ -125,12 +140,13 @@ button, select, input { font: inherit; font-size: 16px; }
 .rules-title { font-size: 1.15rem; color: #e8d5b7; font-weight: bold; }
 .rules-close { font-size: 1.2rem; color: #888; padding: 0 4px; cursor: pointer; background: none; border: none; }
 .rules-body {
-  flex: 1; min-height: 0;
+  position: absolute; top: 50px; bottom: 68px; left: 0; right: 0;
   padding: 12px 18px 24px;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 }
 .rules-footer {
+  position: absolute; bottom: 0; left: 0; right: 0;
   padding: 10px 18px 14px;
   background: #16213e;
 }
@@ -176,9 +192,14 @@ button, select, input { font: inherit; font-size: 16px; }
       <h2>角色配置</h2>
       <div id="roleBody"></div>
       <div class="options hidden" id="optArea"></div>
-      <div style="margin-top:12px">
-        <label style="font-size:.8rem;color:#888">暂停时长（秒）</label>
-        <input type="number" id="pauseInput" value="5" min="1" max="60" style="width:100%;margin-top:4px;padding:8px;border-radius:6px;background:#1a1a2e;color:#e0e0e0;border:1px solid #3a3a5c;font-size:.85rem">
+      <div class="pause-row">
+        <span class="pause-label">暂停时长</span>
+        <div class="stepper">
+          <button class="step-btn" id="pauseMinus">-</button>
+          <input type="number" id="pauseInput" value="5" min="1" max="60">
+          <span class="step-unit">秒</span>
+          <button class="step-btn" id="pausePlus">+</button>
+        </div>
       </div>
     </div>
     <button class="btn btn-primary" id="btnNext">下一步 · 预览剧本</button>
@@ -187,7 +208,6 @@ button, select, input { font: inherit; font-size: 16px; }
   <!-- View 2: Preview -->
   <div id="v2" class="hidden">
     <div class="header"><h1>剧本预览</h1></div>
-    <div class="steps"><div class="step-dot done"></div><div class="step-dot active"></div><div class="step-dot"></div></div>
     <div class="card">
       <h2>夜间环节流程</h2>
       <div id="preview"></div>
@@ -221,7 +241,7 @@ button, select, input { font: inherit; font-size: 16px; }
 
   <!-- 游戏规则弹窗 -->
   <div id="rulesModal" class="rules-overlay hidden" onclick="closeRules()" ontouchmove="event.preventDefault()">
-    <div class="rules-modal" onclick="event.stopPropagation()">
+    <div class="rules-modal" onclick="event.stopPropagation()" ontouchmove="event.stopPropagation()">
       <div class="rules-header">
         <span class="rules-title">游戏规则</span>
         <button class="rules-close" onclick="closeRules()">✕</button>
@@ -258,7 +278,7 @@ const v1=$('v1'), v2=$('v2'), v3=$('v3');
 const ns=$('numSelect'), rb=$('roleBody'), oa=$('optArea');
 const pv=$('preview'), tx=$('text'), lb=$('label'), br=$('bar');
 const da=$('dots'), at=$('autoToggle'), bp=$('btnAdvance'), bs=$('btnStop'), ba=$('btnAgain');
-const pi=$('pauseInput'), audioStatus=$('audioStatus'), ap=$('audioPlayer');
+const pi=$('pauseInput'), pm=$('pauseMinus'), pp=$('pausePlus'), audioStatus=$('audioStatus'), ap=$('audioPlayer');
 const btnStart=$('btnStart'), btnShowRules=$('btnShowRules');
 
 // === HELPERS ===
@@ -391,6 +411,12 @@ pi.onchange = () => {
   const v=parseInt(pi.value);
   if(v>=1&&v<=60){ pauseDuration=v; try{ localStorage.setItem('apause',pi.value); }catch(e){} }
   else pi.value=pauseDuration;
+};
+pm.onclick = () => {
+  if(pauseDuration > 1){ pauseDuration--; pi.value = pauseDuration; try{ localStorage.setItem('apause', pi.value); }catch(e){} renderPv(); }
+};
+pp.onclick = () => {
+  if(pauseDuration < 60){ pauseDuration++; pi.value = pauseDuration; try{ localStorage.setItem('apause', pi.value); }catch(e){} renderPv(); }
 };
 
 // === VIEW 1 ===

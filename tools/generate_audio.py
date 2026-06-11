@@ -58,34 +58,34 @@ def gen(player_count, mordred=False, oberon=False):
     merlin_thumbs = uniq([role for role in evil_roles if role != "莫德雷德"])
     steps = []
 
-    # 0: close eyes
+    # JS step 0, audio: close-eyes.mp3
     steps.append(["请所有人闭上眼睛"])
 
-    # 1: evil meet - open eyes
+    # JS step 1, audio: evil-{roles}.mp3
     steps.append([f"{join_roles(visible_evil)}请睁开眼睛"])
 
-    # 2: evil confirm each other
+    # JS step 2, audio: evil-confirm.mp3
     steps.append(["确认彼此身份"])
 
-    # 3: evil close eyes
+    # JS step 3, audio: evil-close-eyes.mp3
     steps.append(["请闭上眼睛"])
 
-    # 3: merlin see thumbs
+    # JS step 4, audio: merlin-{roles}.mp3
     steps.append([f"请{join_roles(merlin_thumbs)}竖起大拇指", "梅林请睁开眼睛"])
 
-    # 4: merlin - put thumbs down, close eyes
+    # JS step 6, audio: merlin-close-eyes.mp3
     steps.append(["梅林请闭上眼睛", "请收回大拇指"])
 
-    # 5: percival open eyes
+    # JS step 7, audio: percival.mp3
     steps.append([
         "请梅林和莫甘娜竖起大拇指",
         "派西维尔请睁开眼睛",
     ])
 
-    # 6: percival - put thumbs down, close eyes
+    # JS step 9, audio: percival-close-eyes.mp3
     steps.append(["派西维尔请闭上眼睛", "请收回大拇指"])
 
-    # 7: dawn
+    # JS step 10, audio: dawn.mp3
     steps.append(["天亮了，请所有人睁开眼睛"])
 
     return ["。".join(step) for step in steps]
