@@ -105,7 +105,7 @@ globalData: {
   playerCount: 7,
   mordred: false,
   oberon: false,
-  pauseDuration: 5
+  pauseDuration: 3
 }
 ```
 

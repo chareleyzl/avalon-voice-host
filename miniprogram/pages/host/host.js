@@ -25,7 +25,7 @@ Page({
     this.playerCount = playerCount;
     this.mordred = mordred;
     this.oberon = oberon;
-    this.pauseDuration = pauseDuration || 5;
+    this.pauseDuration = pauseDuration || 3;
 
     audio.create();
 

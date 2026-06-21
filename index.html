@@ -196,7 +196,7 @@ button, select, input { font: inherit; font-size: 16px; }
         <span class="pause-label">暂停时长</span>
         <div class="stepper">
           <button class="step-btn" id="pauseMinus">-</button>
-          <input type="number" id="pauseInput" value="5" min="1" max="60">
+          <input type="number" id="pauseInput" value="3" min="1" max="60">
           <span class="step-unit">秒</span>
           <button class="step-btn" id="pausePlus">+</button>
         </div>
@@ -269,7 +269,7 @@ const CFG = {
 
 // === STATE ===
 let n = 7, mord = false, ober = false;
-let pauseDuration = 5;
+let pauseDuration = 3;
 let sects = [], cur = 0, tmr = null, cnt = null, audioRun = 0;
 
 // === DOM ===

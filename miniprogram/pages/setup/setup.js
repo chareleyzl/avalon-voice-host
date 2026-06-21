@@ -19,7 +19,7 @@ Page({
     mordred: false,
     oberon: false,
     showOptions: true,
-    pauseDuration: 5,
+    pauseDuration: 3,
     goods: [],
     evils: [],
     script: [],
@@ -31,7 +31,7 @@ Page({
     const g = getApp().globalData;
     const saved = wx.getStorageSync('pauseDuration');
     if (saved) g.pauseDuration = parseInt(saved);
-    if (g.pauseDuration < 1 || g.pauseDuration > 60) g.pauseDuration = 5;
+    if (g.pauseDuration < 1 || g.pauseDuration > 60) g.pauseDuration = 3;
 
     this.setData({
       playerCount: g.playerCount || 7,
