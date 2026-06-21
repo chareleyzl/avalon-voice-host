@@ -114,5 +114,12 @@ Page({
     g.pauseDuration = pauseDuration;
     audio.stop();
     wx.redirectTo({ url: '/pages/host/host' });
+  },
+
+  onShareAppMessage() {
+    return {
+      title: '阿瓦隆线下语音主持',
+      path: '/pages/setup/setup'
+    };
   }
 });

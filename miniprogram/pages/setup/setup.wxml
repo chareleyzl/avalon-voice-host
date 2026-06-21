@@ -1,8 +1,4 @@
 <view class="app">
-  <view class="header">
-    <text class="title">阿瓦隆主持人</text>
-  </view>
-
   <!-- 人数选择 -->
   <view class="card">
     <h2>选择玩家人数</h2>
