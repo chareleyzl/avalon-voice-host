@@ -1,6 +1,4 @@
 {
-  "usingComponents": {
-    "step-dots": "../../components/step-dots/step-dots"
-  },
+  "usingComponents": {},
   "navigationBarTitleText": "阿瓦隆主持"
 }

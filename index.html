@@ -31,24 +31,38 @@ button, select, input { font: inherit; font-size: 16px; }
 }
 .card h2 { font-size: 1rem; color: #e8d5b7; margin-bottom: 10px; }
 
-.num-select { display: grid; grid-template-columns: repeat(auto-fit, 44px); justify-content: center; gap: 8px; }
+.num-select { display: flex; justify-content: flex-start; gap: 8px; flex-wrap: nowrap; }
 .num-btn {
   width: 44px; height: 44px; border-radius: 50%; border: 2px solid #3a3a5c;
-  background: #1a1a2e; color: #e0e0e0; font-size: 1.1rem;
+  background: #1a1a2e; color: #e0e0e0; font-size: 1rem; flex-shrink: 0;
   -webkit-appearance: none; -webkit-tap-highlight-color: transparent; cursor: pointer;
 }
 .num-btn.active { border-color: #e8d5b7; background: #e8d5b7; color: #1a1a2e; font-weight: bold; }
 
-.role-table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: .9rem; }
-.role-table th, .role-table td { padding: 6px 8px; text-align: center; }
-.role-table th:first-child, .role-table td:first-child { width: 72px; }
-.role-table td:last-child { text-align: left; }
-.role-table th { color: #888; font-weight: normal; font-size: .75rem; }
-.role-table .good { color: #5a9e6f; }
-.role-table .evil { color: #c0392b; }
-.role-tag { display: inline-block; font-size: .78rem; padding: 2px 7px; border-radius: 8px; margin: 2px; white-space: nowrap; }
-.role-tag.good { background: rgba(90,158,111,.2); color: #5a9e6f; }
+.role-row { display: flex; align-items: center; padding: 3px 0; font-size: .85rem; }
+.role-side { width: 72px; flex-shrink: 0; font-size: .78rem; }
+.role-side.good { color: #5a8ecf; }
+.role-side.evil { color: #c0392b; }
+.role-tags { flex: 1; min-width: 0; line-height: 1; }
+.role-tag { display: inline-block; font-size: .75rem; padding: 2px 6px; border-radius: 6px; margin: 1px; white-space: nowrap; }
+.role-tag.good { background: rgba(90,142,207,.2); color: #5a8ecf; }
 .role-tag.evil { background: rgba(192,57,43,.2); color: #c0392b; }
+
+.pause-row { display: flex; align-items: center; justify-content: space-between; margin-top: 12px; }
+.pause-label { font-size: .8rem; color: #888; }
+.stepper { display: flex; align-items: center; gap: 4px; }
+.step-btn {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: #3a3a5c; color: #e8d5b7; border: none;
+  font-size: 1.2rem; font-weight: bold; cursor: pointer;
+  -webkit-appearance: none; -webkit-tap-highlight-color: transparent;
+}
+.stepper input {
+  width: 48px; padding: 6px 0; border-radius: 6px;
+  background: #1a1a2e; color: #e0e0e0;
+  border: 1px solid #3a3a5c; font-size: .85rem; text-align: center;
+}
+.step-unit { font-size: .8rem; color: #888; }
 
 .options { margin-top: 12px; }
 .option-item { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid #2a2a4a; }
@@ -75,12 +89,14 @@ button, select, input { font: inherit; font-size: 16px; }
 .btn-secondary { background: transparent; border: 1px solid #3a3a5c; color: #e0e0e0; margin-top: 10px; }
 .btn-secondary + .btn-primary { margin-top: 10px; }
 
-.script-step { display: flex; align-items: flex-start; gap: 8px; padding: 8px 0; border-bottom: 1px solid #2a2a4a; }
-.script-step:last-child { border-bottom: none; }
-.script-step > div:last-child { min-width: 0; }
+.script-section { padding: 10px 0; border-bottom: 1px solid #2a2a4a; }
+.script-section:last-child { border-bottom: none; }
+.script-head { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
 .script-num { width: 26px; height: 26px; border-radius: 50%; background: #3a3a5c; color: #e8d5b7; display: flex; align-items: center; justify-content: center; font-size: .75rem; flex-shrink: 0; }
-.script-text { font-size: .85rem; line-height: 1.5; }
-.script-sub { font-size: .78rem; color: #888; margin-top: 3px; overflow-wrap: anywhere; }
+.script-bold { font-weight: bold; font-size: .9rem; }
+.script-body { padding-left: 34px; }
+.script-sub { font-size: .78rem; color: #888; padding: 2px 0; }
+.script-pause { font-size: .75rem; color: #888; }
 
 .exec-area { text-align: center; }
 .exec-label { font-size: .8rem; color: #888; margin-bottom: 6px; }
@@ -102,11 +118,61 @@ button, select, input { font: inherit; font-size: 16px; }
 
 .hidden { display: none !important; }
 
+/* 游戏规则弹窗 */
+.rules-overlay {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,.7);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1000;
+}
+.rules-modal {
+  width: 94%; height: 90vh;
+  background: #16213e; border-radius: 14px;
+  border: 1px solid #3a3a5c;
+  overflow: hidden;
+  position: relative;
+}
+.rules-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 18px 10px;
+  border-bottom: 1px solid #2a2a4a;
+}
+.rules-title { font-size: 1.15rem; color: #e8d5b7; font-weight: bold; }
+.rules-close { font-size: 1.2rem; color: #888; padding: 0 4px; cursor: pointer; background: none; border: none; }
+.rules-body {
+  position: absolute; top: 50px; bottom: 68px; left: 0; right: 0;
+  padding: 12px 18px 24px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.rules-footer {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  padding: 10px 18px 14px;
+  background: #16213e;
+}
+.rules-confirm { width: 100%; margin: 0; }
+.rules-section { margin-bottom: 14px; }
+.rules-section:last-child { margin-bottom: 0; }
+.rules-section-title {
+  font-size: 0.92rem; color: #e8d5b7; font-weight: bold;
+  margin-bottom: 6px; padding-bottom: 4px;
+  border-bottom: 1px solid #2a2a4a;
+}
+.rules-subtitle { font-size: 0.85rem; font-weight: bold; margin: 8px 0 4px; }
+.rules-subtitle.good { color: #5a8ecf; }
+.rules-subtitle.evil { color: #c0392b; }
+.rules-role { font-size: 0.8rem; padding: 2px 0; line-height: 1.5; }
+.rules-role-name { color: #e0e0e0; font-weight: 500; }
+.rules-role-desc { color: #aaa; }
+.rules-text { font-size: 0.8rem; color: #bbb; padding: 2px 0; line-height: 1.6; }
+.rules-bold { font-weight: bold; color: #e0e0e0; }
+.rules-hl { color: #e8d5b7; font-weight: bold; }
+
 @media (max-width: 360px) {
   .app { padding-left: 10px; padding-right: 10px; }
   .card { padding: 14px; }
   .header h1 { font-size: 1.25rem; }
-  .role-table th:first-child, .role-table td:first-child { width: 64px; }
+  .role-side { width: 64px; }
   .exec-text { font-size: 1.15rem; min-height: 150px; }
   .exec-row { flex-direction: column; }
 }
@@ -118,18 +184,22 @@ button, select, input { font: inherit; font-size: 16px; }
   <!-- View 1: Config -->
   <div id="v1">
     <div class="header"><h1>阿瓦隆主持人</h1></div>
-    <div class="steps"><div class="step-dot active"></div><div class="step-dot"></div><div class="step-dot"></div></div>
     <div class="card">
       <h2>选择玩家人数</h2>
       <div class="num-select" id="numSelect"></div>
     </div>
     <div class="card">
       <h2>角色配置</h2>
-      <table class="role-table"><tr><th>阵营</th><th>角色</th></tr><tbody id="roleBody"></tbody></table>
+      <div id="roleBody"></div>
       <div class="options hidden" id="optArea"></div>
-      <div style="margin-top:12px">
-        <label style="font-size:.8rem;color:#888">暂停时长（秒）</label>
-        <input type="number" id="pauseInput" value="5" min="1" max="60" style="width:100%;margin-top:4px;padding:8px;border-radius:6px;background:#1a1a2e;color:#e0e0e0;border:1px solid #3a3a5c;font-size:.85rem">
+      <div class="pause-row">
+        <span class="pause-label">暂停时长</span>
+        <div class="stepper">
+          <button class="step-btn" id="pauseMinus">-</button>
+          <input type="number" id="pauseInput" value="5" min="1" max="60">
+          <span class="step-unit">秒</span>
+          <button class="step-btn" id="pausePlus">+</button>
+        </div>
       </div>
     </div>
     <button class="btn btn-primary" id="btnNext">下一步 · 预览剧本</button>
@@ -138,12 +208,11 @@ button, select, input { font: inherit; font-size: 16px; }
   <!-- View 2: Preview -->
   <div id="v2" class="hidden">
     <div class="header"><h1>剧本预览</h1></div>
-    <div class="steps"><div class="step-dot done"></div><div class="step-dot active"></div><div class="step-dot"></div></div>
     <div class="card">
       <h2>夜间环节流程</h2>
       <div id="preview"></div>
     </div>
-    <button class="btn btn-secondary" id="btnTestSound">测试声音</button>
+    <button class="btn btn-secondary" id="btnShowRules">游戏规则</button>
     <button class="btn btn-primary" id="btnStart">开始主持</button>
     <button class="btn btn-secondary" id="btnBack">返回修改</button>
   </div>
@@ -167,6 +236,21 @@ button, select, input { font: inherit; font-size: 16px; }
       </div>
     </div>
     <button class="btn btn-secondary hidden" id="btnAgain">重新开始</button>
+  </div>
+
+
+  <!-- 游戏规则弹窗 -->
+  <div id="rulesModal" class="rules-overlay hidden" onclick="closeRules()" ontouchmove="event.preventDefault()">
+    <div class="rules-modal" onclick="event.stopPropagation()" ontouchmove="event.stopPropagation()">
+      <div class="rules-header">
+        <span class="rules-title">游戏规则</span>
+        <button class="rules-close" onclick="closeRules()">✕</button>
+      </div>
+      <div class="rules-body" id="rulesContent"></div>
+      <div class="rules-footer">
+        <button class="btn btn-primary rules-confirm" onclick="closeRules()">已阅</button>
+      </div>
+    </div>
   </div>
 
 </div>
@@ -194,8 +278,8 @@ const v1=$('v1'), v2=$('v2'), v3=$('v3');
 const ns=$('numSelect'), rb=$('roleBody'), oa=$('optArea');
 const pv=$('preview'), tx=$('text'), lb=$('label'), br=$('bar');
 const da=$('dots'), at=$('autoToggle'), bp=$('btnAdvance'), bs=$('btnStop'), ba=$('btnAgain');
-const pi=$('pauseInput'), audioStatus=$('audioStatus'), ap=$('audioPlayer');
-const btnStart=$('btnStart'), btnTestSound=$('btnTestSound');
+const pi=$('pauseInput'), pm=$('pauseMinus'), pp=$('pausePlus'), audioStatus=$('audioStatus'), ap=$('audioPlayer');
+const btnStart=$('btnStart'), btnShowRules=$('btnShowRules');
 
 // === HELPERS ===
 function evils() {
@@ -214,17 +298,28 @@ const ROLE_AUDIO_KEY = {
   '奥伯伦':'oberon'
 };
 function roleAudioKey(roles){ return roles.map(r=>ROLE_AUDIO_KEY[r]||r).join('-'); }
+function uniq(arr){ return [...new Set(arr)]; }
+const ROLE_DESC = {
+  '梅林':     { side: 'good', desc: '开局看到所有坏人（除莫德雷德）' },
+  '派西维尔': { side: 'good', desc: '开局看到梅林和莫甘娜' },
+  '忠臣':     { side: 'good', desc: '无特殊信息，靠逻辑推理' },
+  '莫甘娜':   { side: 'evil', desc: '伪装成梅林，混淆派西维尔' },
+  '刺客':     { side: 'evil', desc: '游戏结束时刺杀梅林' },
+  '莫德雷德': { side: 'evil', desc: '梅林看不到他' },
+  '爪牙':     { side: 'evil', desc: '无特殊能力，协助破坏任务' },
+  '奥伯伦':   { side: 'evil', desc: '不被其他坏人知道' }
+};
 function audioSrc(i){
   const ev = evils();
   if(i===0) return 'audio/close-eyes.mp3';
   if(i===1) {
-    const visible = ev.filter(r => r!=='奥伯伦');
+    const visible = uniq(ev.filter(r => r!=='奥伯伦'));
     return `audio/evil-${roleAudioKey(visible)}.mp3`;
   }
   if(i===2) return 'audio/evil-confirm.mp3';
   if(i===3) return 'audio/evil-close-eyes.mp3';
   if(i===4) {
-    const thumbs = ev.filter(r => r!=='莫德雷德');
+    const thumbs = uniq(ev.filter(r => r!=='莫德雷德'));
     return `audio/merlin-${roleAudioKey(thumbs)}.mp3`;
   }
   if(i===6) return 'audio/merlin-close-eyes.mp3';
@@ -237,7 +332,7 @@ function audioSrc(i){
 // === SCRIPT ===
 function gen() {
   const ev = evils();
-  const visible = ev.filter(r => r!=='奥伯伦'), thumbs = ev.filter(r => r!=='莫德雷德');
+  const visible = uniq(ev.filter(r => r!=='奥伯伦')), thumbs = uniq(ev.filter(r => r!=='莫德雷德'));
   const st = [];
   st.push({ sec:'天黑闭眼', txt:['请所有人闭上眼睛'] });
   const s2t = [`${jn(visible)}请睁开眼睛`];
@@ -317,6 +412,12 @@ pi.onchange = () => {
   if(v>=1&&v<=60){ pauseDuration=v; try{ localStorage.setItem('apause',pi.value); }catch(e){} }
   else pi.value=pauseDuration;
 };
+pm.onclick = () => {
+  if(pauseDuration > 1){ pauseDuration--; pi.value = pauseDuration; try{ localStorage.setItem('apause', pi.value); }catch(e){} renderPv(); }
+};
+pp.onclick = () => {
+  if(pauseDuration < 60){ pauseDuration++; pi.value = pauseDuration; try{ localStorage.setItem('apause', pi.value); }catch(e){} renderPv(); }
+};
 
 // === VIEW 1 ===
 function renderNs() {
@@ -332,7 +433,7 @@ function renderNs() {
 function renderCfg() {
   ns.querySelectorAll('.num-btn').forEach(b=>b.classList.toggle('active',+b.textContent===n));
   const g=goods(), e=evils();
-  rb.innerHTML=`<tr><td class="good">好人方<br><small>${g.length}人</small></td><td>${g.map(r=>`<span class="role-tag good">${r}</span>`).join('')}</td></tr><tr><td class="evil">坏人方<br><small>${e.length}人</small></td><td>${e.map(r=>`<span class="role-tag evil">${r}</span>`).join('')}</td></tr>`;
+  rb.innerHTML=`<div class="role-row"><div class="role-side good">蓝方 · ${g.length}人</div><div class="role-tags">${g.map(r=>`<span class="role-tag good">${r}</span>`).join('')}</div></div><div class="role-row"><div class="role-side evil">红方 · ${e.length}人</div><div class="role-tags">${e.map(r=>`<span class="role-tag evil">${r}</span>`).join('')}</div></div>`;
   if(CFG[n].min>0){
     oa.classList.remove('hidden');
     oa.innerHTML=`
@@ -344,9 +445,37 @@ function renderCfg() {
 }
 
 // === VIEW 2 ===
+function previewGroups(steps) {
+  var groups = [];
+  for (var i = 0; i < steps.length; i++) {
+    var step = steps[i];
+    var last = groups[groups.length - 1];
+    if (last && last.sec === step.sec) {
+      last.items.push(step);
+    } else {
+      groups.push({ sec: step.sec, items: [step] });
+    }
+  }
+  return groups;
+}
 function renderPv() {
-  const st=gen();
-  pv.innerHTML=st.map((s,i)=>`<div class="script-step"><div class="script-num">${i+1}</div><div><div class="script-text"><strong>${s.sec}</strong>${s.pause?' <span style="color:#888;font-size:.8rem">[暂停 '+pauseDuration+'秒]</span>':''}</div>${(s.txt||[]).map(t=>`<div class="script-sub">· ${t}</div>`).join('')}</div></div>`).join('');
+  var st = gen();
+  var groups = previewGroups(st);
+  pv.innerHTML = groups.map(function(g, i) {
+    var items = '';
+    for (var j = 0; j < g.items.length; j++) {
+      var s = g.items[j];
+      if (s.txt) {
+        for (var k = 0; k < s.txt.length; k++) {
+          items += '<div class="script-sub">· ' + s.txt[k] + '</div>';
+        }
+      }
+      if (s.pause) {
+        items += '<div class="script-pause">· [暂停 ' + pauseDuration + '秒] ' + s.pauseLabel + '</div>';
+      }
+    }
+    return '<div class="script-section"><div class="script-head"><div class="script-num">' + (i + 1) + '</div><span class="script-bold">' + g.sec + '</span></div><div class="script-body">' + items + '</div></div>';
+  }).join('');
 }
 
 // === VIEW 3 ===
@@ -417,8 +546,78 @@ function showV(v) {
   v1.classList.add('hidden'); v2.classList.add('hidden'); v3.classList.add('hidden');
   v.classList.remove('hidden');
 }
-function testSound() {
-  playAudio('audio/close-eyes.mp3');
+function buildRules() {
+  var ev = evils(), gd = goods();
+  var merlinDesc = mord ? '开局看到所有坏人（除莫德雷德）' : '开局看到所有坏人';
+  var goodRoles = [], evilRoles = [], seen = {}, seen2 = {};
+  for (var i = 0; i < gd.length; i++) {
+    var r = gd[i];
+    if (seen[r]) continue;
+    seen[r] = true;
+    var desc = r === '梅林' ? merlinDesc : ((ROLE_DESC[r] || {}).desc || '');
+    goodRoles.push({ name: r, desc: desc });
+  }
+  for (var j = 0; j < ev.length; j++) {
+    var r2 = ev[j];
+    if (seen2[r2]) continue;
+    seen2[r2] = true;
+    evilRoles.push({ name: r2, desc: (ROLE_DESC[r2] || {}).desc || '' });
+  }
+  return { playerCount: n, goodCount: gd.length, evilCount: ev.length, goodRoles: goodRoles, evilRoles: evilRoles };
+}
+
+function showRules() {
+  var rules = buildRules();
+  var html = '';
+  // 基本设置
+  html += '<div class="rules-section">';
+  html += '<div class="rules-section-title">基本设置</div>';
+  html += '<div class="rules-text">· 本局共 <span class="rules-hl">' + rules.playerCount + '</span> 名玩家，其中蓝方 ' + rules.goodCount + ' 人、红方 ' + rules.evilCount + ' 人</div>';
+  html += '</div>';
+  // 角色能力
+  html += '<div class="rules-section">';
+  html += '<div class="rules-section-title">角色能力</div>';
+  html += '<div class="rules-subtitle good">蓝方</div>';
+  for (var i = 0; i < rules.goodRoles.length; i++) {
+    var gr = rules.goodRoles[i];
+    html += '<div class="rules-role"><span class="rules-role-name">· ' + gr.name + '</span><span class="rules-role-desc">：' + gr.desc + '</span></div>';
+  }
+  html += '<div class="rules-subtitle evil">红方</div>';
+  for (var j = 0; j < rules.evilRoles.length; j++) {
+    var er = rules.evilRoles[j];
+    html += '<div class="rules-role"><span class="rules-role-name">· ' + er.name + '</span><span class="rules-role-desc">：' + er.desc + '</span></div>';
+  }
+  html += '</div>';
+  // 任务流程
+  html += '<div class="rules-section">';
+  html += '<div class="rules-section-title">任务流程</div>';
+  html += '<div class="rules-text"><span class="rules-bold">组队阶段：</span>队长选择若干玩家</div>';
+  html += '<div class="rules-text"><span class="rules-bold">投票阶段：</span>全员投票是否同意该队伍</div>';
+  html += '<div class="rules-text">　· 多数同意 → 进入任务</div>';
+  html += '<div class="rules-text">　· 多数反对 → 队长传给下家，重新组队</div>';
+  html += '<div class="rules-text">　· 连续 5 次反对 → 红方直接获胜</div>';
+  html += '<div class="rules-text"><span class="rules-bold">任务阶段：</span>队伍成员秘密投「成功」或「失败」</div>';
+  html += '<div class="rules-text">　· 蓝方只能投成功</div>';
+  html += '<div class="rules-text">　· 红方可选择投失败（或伪装投成功）</div>';
+  html += '<div class="rules-text">　· 结果仅公布成功/失败票数，不公布谁投的</div>';
+  html += '</div>';
+  // 胜利条件
+  html += '<div class="rules-section">';
+  html += '<div class="rules-section-title">胜利条件</div>';
+  html += '<div class="rules-subtitle good">蓝方获胜</div>';
+  html += '<div class="rules-text">· 成功完成 <span class="rules-hl">3 次任务</span>，且刺客未成功刺杀梅林</div>';
+  html += '<div class="rules-subtitle evil">红方获胜（满足任一）</div>';
+  html += '<div class="rules-text">· 任务失败达到 3 次</div>';
+  html += '<div class="rules-text">· 刺客成功刺杀梅林（蓝方完成 3 次任务后触发）</div>';
+  html += '</div>';
+  $('rulesContent').innerHTML = html;
+  $('rulesModal').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeRules() {
+  $('rulesModal').classList.add('hidden');
+  document.body.style.overflow = '';
 }
 $('btnNext').onclick = () => { renderPv(); showV(v2); };
 $('btnBack').onclick = () => showV(v1);
@@ -433,8 +632,8 @@ function handleStart(e) {
   showV(v3);
   startExec();
 }
-btnTestSound.addEventListener('touchend', e => { e.preventDefault(); testSound(); }, { passive:false });
-btnTestSound.addEventListener('click', testSound);
+btnShowRules.addEventListener('touchend', function(e) { e.preventDefault(); showRules(); }, { passive:false });
+btnShowRules.addEventListener('click', showRules);
 btnStart.addEventListener('touchend', handleStart, { passive:false });
 btnStart.addEventListener('click', handleStart);
 bp.onclick = advance;
