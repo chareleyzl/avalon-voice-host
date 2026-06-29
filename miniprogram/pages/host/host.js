@@ -1,5 +1,6 @@
 const { gen, audioPath } = require('../../utils/config');
 const audio = require('../../utils/audio-manager');
+const { buildSetupPath } = require('../../utils/entry');
 
 Page({
   data: {
@@ -25,7 +26,7 @@ Page({
     this.playerCount = playerCount;
     this.mordred = mordred;
     this.oberon = oberon;
-    this.pauseDuration = pauseDuration || 3;
+    this.pauseDuration = pauseDuration || 5;
 
     audio.create();
 
@@ -42,8 +43,24 @@ Page({
   onShareAppMessage() {
     return {
       title: `阿瓦隆语音主持 · ${this.playerCount}人局`,
-      path: '/pages/setup/setup',
-      imageUrl: ''
+      path: buildSetupPath({
+        playerCount: this.playerCount,
+        mordred: this.mordred,
+        oberon: this.oberon
+      }),
+      imageUrl: '/share.jpg'
+    };
+  },
+
+  onShareTimeline() {
+    return {
+      title: '阿瓦隆语音主持，聚会桌游自动带流程',
+      query: buildSetupPath({
+        playerCount: this.playerCount,
+        mordred: this.mordred,
+        oberon: this.oberon
+      }).split('?')[1] || '',
+      imageUrl: '/share.jpg'
     };
   },
 

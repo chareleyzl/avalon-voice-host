@@ -1,16 +1,6 @@
-const { CFG, evils, goods, gen, audioPath, previewGroups } = require('../../utils/config');
+const { CFG, evils, goods, gen, previewGroups } = require('../../utils/config');
 const audio = require('../../utils/audio-manager');
-
-const ROLE_DESC = {
-  '梅林':     { side: 'good', desc: '开局看到所有坏人（除莫德雷德）' },
-  '派西维尔': { side: 'good', desc: '开局看到梅林和莫甘娜' },
-  '忠臣':     { side: 'good', desc: '无特殊信息，靠逻辑推理' },
-  '莫甘娜':   { side: 'evil', desc: '伪装成梅林，混淆派西维尔' },
-  '刺客':     { side: 'evil', desc: '游戏结束时刺杀梅林' },
-  '莫德雷德': { side: 'evil', desc: '梅林看不到他' },
-  '爪牙':     { side: 'evil', desc: '无特殊能力，协助破坏任务' },
-  '奥伯伦':   { side: 'evil', desc: '不被其他坏人知道' }
-};
+const { parseSetupOptions, buildSetupPath, hasSetupOptions } = require('../../utils/entry');
 
 Page({
   data: {
@@ -19,53 +9,59 @@ Page({
     mordred: false,
     oberon: false,
     showOptions: true,
-    pauseDuration: 3,
+    pauseDuration: 5,
     goods: [],
     evils: [],
-    script: [],
-    showRules: false,
-    rules: { playerCount: 0, goodCount: 0, evilCount: 0, goodRoles: [], evilRoles: [] }
+    script: []
   },
 
-  onLoad() {
+  onLoad(options = {}) {
     const g = getApp().globalData;
     const saved = wx.getStorageSync('pauseDuration');
-    if (saved) g.pauseDuration = parseInt(saved);
-    if (g.pauseDuration < 1 || g.pauseDuration > 60) g.pauseDuration = 3;
+    if (saved) g.pauseDuration = parseInt(saved, 10);
+    if (g.pauseDuration < 1 || g.pauseDuration > 60) g.pauseDuration = 5;
+
+    const entry = hasSetupOptions(options)
+      ? parseSetupOptions(options)
+      : {
+          playerCount: g.playerCount || 7,
+          mordred: g.mordred || false,
+          oberon: g.oberon || false
+        };
 
     this.setData({
-      playerCount: g.playerCount || 7,
-      mordred: g.mordred || false,
-      oberon: g.oberon || false,
+      playerCount: entry.playerCount,
+      mordred: entry.mordred,
+      oberon: entry.oberon,
       pauseDuration: g.pauseDuration
     });
     this.render();
   },
 
   render() {
-    const { playerCount, mordred, oberon, pauseDuration } = this.data;
-    const ev = evils(playerCount, mordred, oberon);
-    const gd = goods(playerCount);
+    const { playerCount, mordred, oberon } = this.data;
     this.setData({
-      goods: gd,
-      evils: ev,
+      goods: goods(playerCount),
+      evils: evils(playerCount, mordred, oberon),
       showOptions: CFG[playerCount].min > 0,
       script: previewGroups(gen(playerCount, mordred, oberon))
     });
   },
 
   onCount(e) {
-    const n = parseInt(e.currentTarget.dataset.n);
+    const n = parseInt(e.currentTarget.dataset.n, 10);
     const min = CFG[n].min;
-    let mordred = false, oberon = false;
-    if (min === 0) { /* keep false */ }
-    else if (min === 1) {
+    let mordred = false;
+    let oberon = false;
+
+    if (min === 1) {
       if (this.data.mordred && !this.data.oberon) mordred = true;
       else if (!this.data.mordred && this.data.oberon) oberon = true;
-    } else {
+    } else if (min > 1) {
       mordred = this.data.mordred;
       oberon = this.data.oberon;
     }
+
     this.setData({ playerCount: n, mordred, oberon });
     this.render();
   },
@@ -87,11 +83,10 @@ Page({
   },
 
   onPause(e) {
-    const v = parseInt(e.detail.value);
+    const v = parseInt(e.detail.value, 10);
     if (v >= 1 && v <= 60) {
       this.setData({ pauseDuration: v });
       wx.setStorageSync('pauseDuration', v);
-      this.render();
     }
   },
 
@@ -100,7 +95,6 @@ Page({
     if (v <= 60) {
       this.setData({ pauseDuration: v });
       wx.setStorageSync('pauseDuration', v);
-      this.render();
     }
   },
 
@@ -109,45 +103,12 @@ Page({
     if (v >= 1) {
       this.setData({ pauseDuration: v });
       wx.setStorageSync('pauseDuration', v);
-      this.render();
     }
-  },
-
-  buildRules() {
-    const { playerCount, mordred } = this.data;
-    const ev = evils(playerCount, this.data.mordred, this.data.oberon);
-    const gd = goods(playerCount);
-
-    const merlinDesc = mordred ? '开局看到所有坏人（除莫德雷德）' : '开局看到所有坏人';
-    const goodRoles = [];
-    const seen = {};
-    for (const r of gd) {
-      if (seen[r]) continue;
-      seen[r] = true;
-      const desc = r === '梅林' ? merlinDesc : (ROLE_DESC[r] || {}).desc || '';
-      goodRoles.push({ name: r, desc });
-    }
-
-    const evilRoles = [];
-    const seen2 = {};
-    for (const r of ev) {
-      if (seen2[r]) continue;
-      seen2[r] = true;
-      evilRoles.push({ name: r, desc: (ROLE_DESC[r] || {}).desc || '' });
-    }
-
-    return { playerCount, goodCount: gd.length, evilCount: ev.length, goodRoles, evilRoles };
   },
 
   onShowRules() {
-    this.setData({ showRules: true, rules: this.buildRules() });
+    wx.navigateTo({ url: buildSetupPath(this.data).replace('/pages/setup/setup', '/pages/rules/rules') });
   },
-
-  onCloseRules() {
-    this.setData({ showRules: false });
-  },
-
-  noop() {},
 
   onStart() {
     const { playerCount, mordred, oberon, pauseDuration } = this.data;
@@ -162,8 +123,17 @@ Page({
 
   onShareAppMessage() {
     return {
-      title: '阿瓦隆线下语音主持',
-      path: '/pages/setup/setup'
+      title: `阿瓦隆语音主持 · ${this.data.playerCount}人局自动带夜晚流程`,
+      path: buildSetupPath(this.data),
+      imageUrl: '/share.jpg'
+    };
+  },
+
+  onShareTimeline() {
+    return {
+      title: '阿瓦隆语音主持，5-10人局自动带夜晚流程',
+      query: buildSetupPath(this.data).split('?')[1] || '',
+      imageUrl: '/share.jpg'
     };
   }
 });

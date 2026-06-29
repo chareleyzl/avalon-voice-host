@@ -1,0 +1,118 @@
+{
+  "apis": [
+    {
+      "name": "startGame",
+      "description": "开始或配置阿瓦隆游戏，导航到游戏设置页。当用户明确表示要开始一局游戏时调用，如：来一局、开一局阿瓦隆、7人局、10人带莫德雷德。调用前置条件：用户表达了开始游戏或配置游戏的意图。禁止场景：用户仅在询问规则而非开始游戏。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "players": {
+            "type": "number",
+            "description": "玩家人数，取值范围 5-10。从用户原话中提取数字，如 7人局 对应 7。未指定时默认为 7。",
+            "enum": [5, 6, 7, 8, 9, 10]
+          },
+          "mordred": {
+            "type": "boolean",
+            "description": "是否包含莫德雷德变体。莫德雷德不会被梅林看见。7-9人局中与奥伯伦互斥，10人局可同时选择。"
+          },
+          "oberon": {
+            "type": "boolean",
+            "description": "是否包含奥伯伦变体。奥伯伦不被其他坏人看见。7-9人局中与莫德雷德互斥，10人局可同时选择。"
+          }
+        }
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "跳转的目标设置页路径"
+          },
+          "players": {
+            "type": "number"
+          },
+          "mordred": {
+            "type": "boolean"
+          },
+          "oberon": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    {
+      "name": "showRules",
+      "description": "展示阿瓦隆游戏规则，导航到规则页。当用户询问怎么玩、规则、角色介绍、新手教程、胜利条件、流程说明时调用。可选携带人数和角色参数以展示对应配置。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "players": {
+            "type": "number",
+            "description": "玩家人数，可选。如果用户在询问规则时提到了具体人数则传入。未指定时默认为 7。",
+            "enum": [5, 6, 7, 8, 9, 10]
+          },
+          "mordred": {
+            "type": "boolean",
+            "description": "是否包含莫德雷德，可选。5-6人局会忽略，7-9人局与奥伯伦互斥，10人局可同时选择。"
+          },
+          "oberon": {
+            "type": "boolean",
+            "description": "是否包含奥伯伦，可选。5-6人局会忽略，7-9人局与莫德雷德互斥，10人局可同时选择。"
+          }
+        }
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "跳转的目标规则页路径"
+          },
+          "players": {
+            "type": "number"
+          },
+          "mordred": {
+            "type": "boolean"
+          },
+          "oberon": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    {
+      "name": "getRoleInfo",
+      "description": "查询特定角色的阵营和能力说明。当用户询问某个角色的能力、阵营、玩法时调用，如：梅林能看见谁、派西维尔怎么看人、刺客什么时候刺杀、莫德雷德有什么用。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "roleName": {
+            "type": "string",
+            "description": "角色中文名，如：梅林、派西维尔、忠臣、刺客、莫甘娜、莫德雷德、奥伯伦、爪牙"
+          }
+        },
+        "required": ["roleName"]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "roleName": {
+            "type": "string"
+          },
+          "side": {
+            "type": "string",
+            "description": "阵营：蓝方 good 或红方 evil"
+          },
+          "sideLabel": {
+            "type": "string",
+            "description": "阵营中文名：蓝方或红方"
+          },
+          "desc": {
+            "type": "string",
+            "description": "角色能力描述"
+          }
+        }
+      }
+    }
+  ]
+}

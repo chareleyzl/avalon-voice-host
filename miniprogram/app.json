@@ -1,8 +1,26 @@
 {
   "pages": [
     "pages/setup/setup",
-    "pages/host/host"
+    "pages/host/host",
+    "pages/rules/rules"
   ],
+  "sitemapLocation": "sitemap.json",
+  "subPackages": [
+    {
+      "root": "packageAgent",
+      "independent": true,
+      "pages": []
+    }
+  ],
+  "agent": {
+    "skills": [
+      {
+        "name": "avalon-skill",
+        "description": "阿瓦隆/抵抗组织桌游语音主持，支持5-10人局、角色配置、夜间流程和新手规则查询",
+        "path": "packageAgent/avalon-skill"
+      }
+    ]
+  },
   "window": {
     "navigationBarTitleText": "阿瓦隆主持",
     "navigationBarBackgroundColor": "#1a1a2e",
