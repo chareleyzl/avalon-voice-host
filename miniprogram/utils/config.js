@@ -70,6 +70,10 @@ function gen(playerCount, mordred, oberon) {
   return st;
 }
 
+function evilRoleList(playerCount, mordred, oberon) {
+  return uniq(evils(playerCount, mordred, oberon));
+}
+
 function previewGroups(steps) {
   const groups = [];
   for (const step of steps) {
@@ -83,4 +87,4 @@ function previewGroups(steps) {
   return groups;
 }
 
-module.exports = { CFG, evils, goods, gen, audioPath, previewGroups };
+module.exports = { CFG, evils, goods, gen, audioPath, previewGroups, evilRoleList };

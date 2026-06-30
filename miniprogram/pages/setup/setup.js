@@ -1,4 +1,4 @@
-const { CFG, evils, goods, gen, previewGroups } = require('../../utils/config');
+const { CFG, evils, goods, gen, previewGroups, evilRoleList } = require('../../utils/config');
 const audio = require('../../utils/audio-manager');
 const { parseSetupOptions, buildSetupPath, hasSetupOptions } = require('../../utils/entry');
 
@@ -122,8 +122,10 @@ Page({
   },
 
   onShareAppMessage() {
+    const { playerCount, mordred, oberon } = this.data;
+    const evilRoles = evilRoleList(playerCount, mordred, oberon);
     return {
-      title: `阿瓦隆语音主持 · ${this.data.playerCount}人局自动带夜晚流程`,
+      title: `阿瓦隆语音主持 · ${playerCount}人局（${evilRoles.join('、')}）`,
       path: buildSetupPath(this.data),
       imageUrl: '/share.jpg'
     };

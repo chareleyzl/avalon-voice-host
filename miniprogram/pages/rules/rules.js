@@ -1,5 +1,6 @@
 const { parseSetupOptions, buildSetupPath } = require('../../utils/entry');
 const { buildRules } = require('../../utils/rules');
+const { evilRoleList } = require('../../utils/config');
 
 Page({
   data: {
@@ -22,8 +23,10 @@ Page({
   },
 
   onShareAppMessage() {
+    const { playerCount, mordred, oberon } = this.data;
+    const evilRoles = evilRoleList(playerCount, mordred, oberon);
     return {
-      title: `阿瓦隆${this.data.playerCount}人局规则和语音主持`,
+      title: `阿瓦隆规则 · ${playerCount}人局（${evilRoles.join('、')}）`,
       path: buildSetupPath(this.data).replace('/pages/setup/setup', '/pages/rules/rules'),
       imageUrl: '/share.jpg'
     };
