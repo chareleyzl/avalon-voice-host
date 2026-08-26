@@ -5,7 +5,7 @@
     <view class="num-select">
       <view
         wx:for="{{counts}}"
-        wx:key="index"
+        wx:key="*this"
         class="num-btn {{item === playerCount ? 'active' : ''}}"
         bindtap="onCount"
         data-n="{{item}}"
@@ -20,13 +20,13 @@
       <view class="role-row">
         <view class="role-side good">蓝方 · {{goods.length}}人</view>
         <view class="role-tags">
-          <text wx:for="{{goods}}" wx:key="index" class="tag good">{{item}}</text>
+          <text wx:for="{{goods}}" wx:key="*this" class="tag good">{{item}}</text>
         </view>
       </view>
       <view class="role-row">
         <view class="role-side evil">红方 · {{evils.length}}人</view>
         <view class="role-tags">
-          <text wx:for="{{evils}}" wx:key="index" class="tag evil">{{item}}</text>
+          <text wx:for="{{evils}}" wx:key="*this" class="tag evil">{{item}}</text>
         </view>
       </view>
     </view>
@@ -62,13 +62,13 @@
   <!-- 剧本预览 -->
   <view class="card">
     <h2>剧本预览</h2>
-    <view wx:for="{{script}}" wx:key="index" class="script-section">
+    <view wx:for="{{script}}" wx:key="sec" class="script-section">
       <view class="script-head">
         <view class="script-num">{{index + 1}}</view>
         <text class="script-bold">{{item.sec}}</text>
       </view>
       <view class="script-body">
-        <block wx:for="{{item.items}}" wx:for-item="s" wx:key="idx">
+        <block wx:for="{{item.items}}" wx:for-item="s">
           <view wx:if="{{s.txt}}" wx:for="{{s.txt}}" wx:for-item="t" wx:key="*this" class="script-line">
             <text class="script-sub">· {{t}}</text>
           </view>

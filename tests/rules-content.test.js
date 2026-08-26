@@ -1,10 +1,10 @@
 const assert = require('assert');
 const fs = require('fs');
 
-const rulesUtil = fs.readFileSync('utils/rules.js', 'utf8');
-const rulesPageJs = fs.readFileSync('pages/rules/rules.js', 'utf8');
-const rulesWxml = fs.readFileSync('pages/rules/rules.wxml', 'utf8');
-const rulesWxss = fs.readFileSync('pages/rules/rules.wxss', 'utf8');
+const rulesUtil = fs.readFileSync('miniprogram/utils/rules.js', 'utf8');
+const rulesPageJs = fs.readFileSync('miniprogram/pages/rules/rules.js', 'utf8');
+const rulesWxml = fs.readFileSync('miniprogram/pages/rules/rules.wxml', 'utf8');
+const rulesWxss = fs.readFileSync('miniprogram/pages/rules/rules.wxss', 'utf8');
 
 assert(rulesUtil.includes("const merlinDesc = mordred ? '开局看到所有坏人（除莫德雷德）' : '开局看到所有坏人'"));
 assert(rulesPageJs.includes("const { buildRules } = require('../../utils/rules');"));

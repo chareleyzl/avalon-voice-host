@@ -1,5 +1,5 @@
 const assert = require('assert');
-const { buildRules } = require('../utils/rules');
+const { buildRules } = require('../miniprogram/utils/rules');
 
 assert.deepStrictEqual(buildRules({ playerCount: 7, mordred: true, oberon: true }), {
   playerCount: 7,

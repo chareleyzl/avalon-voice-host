@@ -83,11 +83,11 @@ Page({
   },
 
   onPause(e) {
-    const v = parseInt(e.detail.value, 10);
-    if (v >= 1 && v <= 60) {
-      this.setData({ pauseDuration: v });
-      wx.setStorageSync('pauseDuration', v);
-    }
+    let v = parseInt(e.detail.value, 10);
+    if (isNaN(v) || v < 1) v = 1;
+    if (v > 60) v = 60;
+    this.setData({ pauseDuration: v });
+    wx.setStorageSync('pauseDuration', v);
   },
 
   onPausePlus() {

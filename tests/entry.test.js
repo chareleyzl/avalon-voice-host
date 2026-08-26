@@ -1,5 +1,5 @@
 const assert = require('assert');
-const { parseSetupOptions, buildSetupPath, hasSetupOptions } = require('../utils/entry');
+const { parseSetupOptions, buildSetupPath, hasSetupOptions } = require('../miniprogram/utils/entry');
 
 assert.strictEqual(hasSetupOptions({}), false);
 assert.strictEqual(hasSetupOptions({ players: '7' }), true);

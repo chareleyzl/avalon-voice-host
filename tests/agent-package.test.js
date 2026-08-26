@@ -7,9 +7,9 @@
 const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
-const { buildRules } = require('../utils/rules');
+const { buildRules } = require('../miniprogram/utils/rules');
 
-const app = JSON.parse(fs.readFileSync('app.json', 'utf8'));
+const app = JSON.parse(fs.readFileSync('miniprogram/app.json', 'utf8'));
 const skills = (app.agent && app.agent.skills) || [];
 assert(skills.length > 0, 'app.json should register at least one agent skill');
 
@@ -17,7 +17,7 @@ const skill = skills.find(s => s.name === 'avalon-skill');
 assert(skill, 'app.json should register avalon-skill');
 assert(skill.path, 'avalon-skill should have a path');
 
-const skillDir = path.resolve(skill.path);
+const skillDir = path.resolve('miniprogram', skill.path);
 const skillMdPath = path.join(skillDir, 'SKILL.md');
 const mcpPath = path.join(skillDir, 'mcp.json');
 const indexJsPath = path.join(skillDir, 'index.js');
@@ -106,9 +106,9 @@ for (const f of apiFiles) {
   assert(content.includes('module.exports'), `apis/${f} should export a function via module.exports`);
 }
 
-const startGame = require('../packageAgent/avalon-skill/apis/startGame');
-const showRules = require('../packageAgent/avalon-skill/apis/showRules');
-const getRoleInfo = require('../packageAgent/avalon-skill/apis/getRoleInfo');
+const startGame = require('../miniprogram/packageAgent/avalon-skill/apis/startGame');
+const showRules = require('../miniprogram/packageAgent/avalon-skill/apis/showRules');
+const getRoleInfo = require('../miniprogram/packageAgent/avalon-skill/apis/getRoleInfo');
 
 async function run() {
   const defaultGame = await startGame();
