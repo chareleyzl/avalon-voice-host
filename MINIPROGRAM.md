@@ -26,7 +26,7 @@
 
 ```
 miniprogram/
-├── app.js                          # 入口：全局数据初始化 + 全局错误处理
+├── app.js                          # 入口：全局数据 + 全局音频选项 + 全局错误处理
 ├── app.json                        # 小程序配置（页面路由、Agent Skill、导航栏）
 ├── app.wxss                        # 全局样式（CSS 变量、基础组件样式）
 ├── audio/                          # 预生成 MP3（15 个）
@@ -54,13 +54,15 @@ miniprogram/
 │           ├── showRules.js        # 导航到规则页
 │           └── getRoleInfo.js      # 查询角色阵营和能力
 ├── utils/
-│   ├── audio-manager.js            # 音频播放封装（InnerAudioContext 单例）
+│   ├── audio-manager.js            # 音频播放封装（双实例轮换 + 预加载 + 超时兜底）
 │   ├── config.js                   # 游戏逻辑（角色配置、剧本生成、音频路径映射）
 │   ├── entry.js                    # URL 参数解析与深层链接工具
 │   └── rules.js                    # 规则数据构建（ROLE_DESC + buildRules）
 ├── tests/                          # 测试文件
 │   ├── agent-package.test.js       # Agent Skill 包完整性测试
+│   ├── audio-manager.test.js       # 音频管理器（预加载、回调隔离、超时兜底）
 │   ├── entry.test.js               # URL 解析工具测试
+│   ├── host-playback.test.js       # 主持页播放链路（全自动无人工出口、竞态、预加载）
 │   ├── rules-builder.test.js       # buildRules 逻辑测试
 │   ├── rules-content.test.js       # 规则页面内容测试
 │   ├── setup-cleanup.test.js       # 设置页死代码清理验证
@@ -80,7 +82,7 @@ miniprogram/
 │   设置页面    │────▶│   主持页面    │────▶│   设置页面    │
 │  选择人数    │     │  执行流程    │     │  (再来一局)  │
 │  选择角色    │     │  语音引导    │     └──────────────┘
-│  设置暂停    │     │  手动推进    │
+│  设置暂停    │     │  全自动推进  │
 │  预览剧本    │     └──────────────┘
 │  开始主持    │
 └──────┬───────┘
@@ -116,7 +118,12 @@ App({
     mordred: false,
     oberon: false,
     pauseDuration: 5
-  }
+  },
+  onLaunch() {
+    // iOS 上单实例的 obeyMuteSwitch 不可靠，用全局设置确保静音键下仍能外放
+    wx.setInnerAudioOption({ obeyMuteSwitch: false, mixWithOther: false, fail() {} });
+  },
+  onError(err) { console.error('App error:', err); }
 })
 ```
 
@@ -204,19 +211,32 @@ App({
 
 ### 核心逻辑 (host.js)
 
+**步骤令牌 (`_step`)**：`showSec()` 每次自增一个令牌并传给 `playSec()`。所有异步回调（播放完成、失败重试、延迟推进）先校验令牌，令牌过期即丢弃。这是防止「步骤已切换后，上一步的挂起回调回来捣乱」的核心机制。
+
 **音频播放 (playSec)**：
 - 通过 `config.audioPath()` 获取音频文件路径
 - 无音频步骤直接跳到暂停或自动推进
-- 播放成功 → 自动推进；播放失败 → 提示用户手动点击
+- 播放成功 → 自动推进；播放失败 → 300ms 后自动重试一次
+- 重试仍失败 → 显示"请照屏幕念出本句"，等待 `pauseDuration` 秒后自动推进（流程无人工出口，不能停）
+- 重试定时器 `_retry`、延迟推进 `_defer`、失败兜底 `_fail` 均由 `clearTimers()` 统一清理
+
+**音频预加载**：`showSec(i)` 在启动第 i 段播放后，立即 `audio.preload()` 第 i+1 段。下一段在当前段播放期间完成创建与解码，切步时无静音间隙。
 
 **暂停倒计时 (startPause)**：
-- `setInterval` 每秒更新剩余秒数
-- `setTimeout` 到期后自动调用 `advance()` 推进
+- 进入即显示完整秒数，`setInterval` 每秒递减
+- `setTimeout` 到期后自动推进
 
-**手动控制**：
-- 点击台词文本或"下一步"按钮手动推进
-- 可切换自动/手动播放模式
-- "再来一局"直接跳回设置页
+**流程控制**：
+- 主持环节为全自动，屏幕上只有"结束"按钮，没有"下一步"，也没有自动/手动模式开关
+- 因此每条异常路径都必须能自行走下去：重试仍失败 → 提示主持人照屏幕念并等待 `pauseDuration` 秒后自动推进；音频中断 → 恢复后自动重播当前这句
+- "结束"退回设置页，主持完成后按钮变为"重新开始"
+
+**生命周期**：
+- `onLoad` 注册 `wx.onAudioInterruptionBegin/End`（来电等抢占音频焦点时停播，恢复后重播当前这句），并 `wx.setKeepScreenOn(true)`
+- `onHide` 停止播放并清理定时器，标记 `_halted`；`onShow` 见到 `_halted` 即续播当前这句（全自动流程没有手动出口，不续播就会永远停在切走的那一步）
+- 中断兜底：部分机型只发 `Begin` 不发 `End`，`_wake` 定时器在 10 秒后自行重播，避免永久停滞
+- `resumeCurrent()` 是「中断结束 / 切回前台 / 中断兜底」三条路径的唯一续播入口，进入时递增 `_step` 令牌并清空全部定时器，重复触发也不会叠加播放
+- `onUnload` 反注册中断监听、关闭常亮、销毁音频实例
 
 ---
 
@@ -280,14 +300,21 @@ CFG = {
 
 ### utils/audio-manager.js
 
-InnerAudioContext 单例封装，`runToken` 机制防止过期回调。
+音频播放封装。设计目标是消除两类问题：**旧实例的迟到回调干扰新步骤**（表现为跳步或流程卡死），以及**每步重新创建实例造成的静音间隙**。
+
+- **回调绑定实例**：每次 `play()` 的 `onEnded` / `onError` / `onPlay` 处理器都闭包持有自己的 `token` 与 `settled`，不经由任何模块级共享变量。已释放实例的迟到回调因 `token !== runToken` 被直接丢弃，无法污染当前播放。
+- **双实例轮换预加载**：`preload(src)` 提前创建实例并赋 `src`（赋值即触发加载）。随后 `play()` 若命中同一 `src`，直接接管该实例，跳过创建与解码。
+- **释放顺序**：`release()` 先 `offEnded/offError/offPlay` 解绑，再 `stop()`，最后 `destroy()`，双重保证旧实例不再发声也不再回调。
+- **超时兜底**：赋 `src` 后 3s 内没有 `onPlay` 视为静默失败，转为 `onError`；起播后改用 `duration * 1000 + 2000` 的总时长兜底，防止 `onEnded` 丢失导致流程停滞。
+
+> 注意：微信 `InnerAudioContext.play()` 返回 `undefined`，不是 Promise，无法用 `.catch` 捕获静默失败——兜底必须靠 `onPlay` + 超时。
 
 | 方法 | 说明 |
 |------|------|
-| `create()` | 创建音频上下文，`obeyMuteSwitch = false` |
-| `destroy()` | 销毁音频上下文 |
-| `play(src, onEnd, onError)` | 播放音频，token 校验回调 |
-| `stop()` | 停止播放并递增 token |
+| `preload(src)` | 提前创建实例并开始加载；`src` 为空则释放已预加载实例 |
+| `play(src, onEnd, onError)` | 释放上一实例，命中预加载则接管，否则新建；注册实例级回调与超时兜底 |
+| `stop()` | 递增 token 并释放当前实例，所有挂起回调随即失效 |
+| `destroy()` | `stop()` + 释放预加载实例 |
 
 ### utils/entry.js
 
@@ -355,9 +382,10 @@ URL 参数解析与深层链接工具。
 
 ### 播放策略
 
-- **自动模式**（默认）：音频结束后自动推进；暂停步骤倒计时
-- **手动模式**：每步需手动点击推进
-- **降级处理**：音频失败时显示提示，不影响主持流程
+- **全自动**：音频结束后自动推进；暂停步骤倒计时后自动推进。主持环节没有"下一步"和自动/手动开关，只有"结束"
+- **预加载**：当前步骤播放期间，下一段音频已在另一个实例上完成加载，切步无静音间隙
+- **降级处理**：音频失败（含 3s 起播超时）自动重试一次，重试期间屏幕显示"语音加载中…"；仍失败则提示主持人照屏幕念，`pauseDuration` 秒后自动推进
+- **中断处理**：来电等抢占音频焦点时停播，中断结束后自动重播当前这句；若 10 秒内收不到中断结束事件则自行重播；切后台停播，切回前台自动续播当前这句
 
 ---
 
@@ -366,7 +394,9 @@ URL 参数解析与深层链接工具。
 ```bash
 # 运行全部测试
 node tests/agent-package.test.js    # Agent Skill 包结构与逻辑
+node tests/audio-manager.test.js    # 预加载复用、回调隔离、释放顺序、超时兜底
 node tests/entry.test.js            # URL 解析工具
+node tests/host-playback.test.js    # 全自动无人工出口、失败/中断自恢复、竞态、预加载
 node tests/rules-builder.test.js    # 规则数据构建
 node tests/rules-content.test.js    # 规则页面内容
 node tests/setup-cleanup.test.js    # 设置页死代码清理验证
@@ -387,7 +417,7 @@ node tests/setup-style.test.js      # 设置页样式验证
 | es6 | `true` |
 | minified | `true` |
 | urlCheck | `true` |
-| uploadWithSourceMap | `false` |
+| uploadWithSourceMap | `true` |
 
 ---
 
@@ -427,3 +457,6 @@ python generate_audio.py
 | 2026-06-26 | 精简优化：修复音频文件名 bug（roleAudioKey 排序）、移除死代码、添加网页版步进器 |
 | 2026-06-29 | 规则弹窗改为独立页面；ROLE_DESC 和 buildRules 提取到 utils/rules.js；新增 utils/entry.js 深层链接 |
 | 2026-06-29 | 补全 AI Agent Skill：mcp.json 声明 3 个接口、index.js 注册、apis/ 实现；share.jpg 压缩 83→24KB；新增测试覆盖；总大小 656KB |
+| 2026-08-26 | 主持环节改为全自动：移除自动/手动开关与「下一步」，仅保留「结束」；失败与中断路径改为自恢复（延时自动推进 / 中断后重播本句） |
+| 2026-08-26 | 重写音频播放链路：回调绑定实例（修复旧实例迟到回调串扰导致的流程卡死）、双实例轮换预加载（消除切步静音间隙）、重试/延迟推进定时器纳入统一清理（修复重试劫持）、起播超时兜底、音频中断与切后台处理；新增 host-playback 测试 |
+| 2026-08-26 | 补两处全自动流程的死路：新增 `onShow` 续播（切后台回来后不再永久停滞）、中断 10 秒兜底（只收到 Begin 不收到 End 时自行重播）；首次失败即显示"语音加载中…" |
